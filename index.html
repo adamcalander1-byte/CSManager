@@ -371,7 +371,9 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 #tour{position:fixed;inset:0;z-index:250;background:rgba(5,8,12,.88);display:flex;align-items:center;justify-content:center;padding:24px}
 #tour .tc{background:#131b27;border:1px solid #f2c14e;border-radius:18px;padding:22px;max-width:340px;text-align:center}
 #tour h3{font:800 28px 'Barlow Condensed',sans-serif;margin:6px 0;color:#f2c14e}#tour p{color:#c2cede;font-size:14px;line-height:1.45;margin:6px 0 14px}
-</style>
+.wc{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;font:800 24px 'Barlow Condensed',sans-serif}.wc b{font:700 12px 'Chakra Petch',sans-serif;letter-spacing:.14em;color:#9fb0c6}.wc+.odds{margin-top:6px;height:8px}.buyh{display:flex;justify-content:space-between;align-items:center;font:800 18px 'Barlow Condensed',sans-serif;margin:8px 0 4px}.buyh span{font:600 11px 'Chakra Petch',sans-serif;color:#9fb0c6;letter-spacing:.08em}
+.by{display:grid;grid-template-columns:1.15fr 1.05fr .55fr 1.3fr;gap:4px;align-items:center;font-size:12px;padding:5px 0;border-top:1px solid #223046}.by b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.by em{font-style:normal;color:#9fb0c6;font-size:11px}.by .g{letter-spacing:1px;white-space:nowrap}
+.by.hd{border:0;color:#6f8099;font-size:10px;letter-spacing:.1em;padding:0}</style>
 </head>
 <body>
 <div id="toast"></div><div id="intro"><div class="ilogo">CS</div><h1>CS MANAGER</h1><div class="itag">Build the squad. Call the rounds. Climb the league.</div><div class="iteam" id="introTeam"></div><button id="introGo">Continue</button></div>
@@ -493,6 +495,7 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 
     <div class="teamcalls" id="teamCalls"></div>
     <div class="map-box" id="playMapBox" style="display:none"><svg id="playSvg" viewBox="0 0 1374 1196" preserveAspectRatio="xMidYMid meet"></svg><div class="killfeed" id="killFeed"></div><div class="calltoasts" id="callToasts"></div></div>
+    <div class="goalcard" id="buyPanel" style="display:none"></div>
     <div class="iglov" id="iglOv" style="display:none"></div>
     <div class="evlog" id="evLog" style="display:none"></div>
 
@@ -1557,6 +1560,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const dur=1.2+1.6*(u.stats.util/100);
     foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<170&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
   const inv=u=>u.inv||(u.inv=(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
+  all.forEach(u=>{ u.inv0={...inv(u)}; });
   const fires=[]; let pmDone=false;
   const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
   function utilHit(o,e,dmg,t,kind){ if(!e.alive)return; if(e.armor)dmg*=0.55; dmg*=0.8+0.4*(o.stats.util||60)/100; dmg=Math.round(dmg); const real=Math.min(e.hp,dmg); e.hp-=dmg; dmgDealt[o.key]=(dmgDealt[o.key]||0)+real;
@@ -1925,7 +1929,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   endT=Math.max(endT,...killLog.map(k=>k.t),...shots.map(x=>x.t))+1.2;
   const myDead={},botDead={};
   all.forEach(u=>{if(u.deathT!=null)(u.side==='me'?myDead:botDead)[u.id]=u.deathT;});
-  return {positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
+  return {loadout:Object.fromEntries(all.map(u=>[u.key,{w:u.stats.weapon,a:u.armor,h:u.helmet,g:u.inv0}])),positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
 }
 
 function makePlayDot(id,team,small){
@@ -2325,6 +2329,13 @@ function startTour(){ const steps=[['🎯','Play','Your next match sits on the P
   const o=document.createElement('div'); o.id='tour'; document.body.appendChild(o);
   const show=()=>{ const [e,t,d]=steps[i]; o.innerHTML=`<div class="tc"><div style="font-size:44px">${e}</div><h3>${t}</h3><p>${d}</p><button class="bigbtn" id="tNext">${i<2?'Next':'Let\'s go'}</button><div class="note">${i+1} / 3</div></div>`;
     o.querySelector('#tNext').onclick=()=>{ if(++i<3)show(); else{ roster.toured=true; saveRoster(); o.remove(); } }; }; show(); }
+function renderBuyPanel(pr){ const el=document.getElementById('buyPanel'); if(!el)return; const LO=(pr.res&&pr.res.loadout)||{};
+  const col=(title,type,team,ids,pls,spend,pre)=>`<div class="buyh"><div>${title}</div><span>${type.toUpperCase()}</span></div><div class="by hd"><span>PLAYER</span><span>WEAPON</span><span>ARMOR</span><span>UTILITY</span></div>`+
+    ids.map((id,i)=>{ const ix=parseInt(id.slice(1),10)-1, l=LO[pre+id]||{}, g=l.g||{}, nm=(pls[ix]&&pls[ix].name)||id;
+      const ut=('💨'.repeat(g.smoke||0)+'⚡'.repeat(g.flash||0)+'🔥'.repeat(g.molly||0)+'💥'.repeat(g.he||0))||'—';
+      return `<div class="by"><b>${nm}</b><span>${l.w||'—'}<br><em>$${(spend[ix]||0).toLocaleString()}</em></span><span>${l.h?'🛡 +helm':l.a?'🛡':'—'}</span><span class="g">${ut}</span></div>`; }).join('');
+  el.innerHTML=col(MY_TEAM,pr.buyMe.type,'me',Object.keys(pr.myP),rp(),pr.buyMe.spend,'me')+col(match.opp.name,pr.buyBot.type,'bot',Object.keys(pr.botP),match.opp.players,pr.buyBot.spend,'bot')+`<div class="note" style="margin:8px 0 0">💨 smoke  ⚡ flash  🔥 molotov  💥 HE</div>`;
+  el.style.display=''; }
 function renderReport(){
   const m=match, rep=document.getElementById('reportArea'); rep.style.display='';
   const won=m.score.me>m.score.bot; const best=m.ratings.indexOf(Math.max(...m.ratings));
@@ -2479,7 +2490,7 @@ function finishRound(){
 document.getElementById('playAgainBtn').onclick=()=>{ match.phase='igl'; match.tacticId=null; renderPlay(); };
 document.getElementById('newMatchBtn').onclick=()=>{ match=null; renderPlay(); };
 
-function renderPlay(){
+function renderPlay(){ { const bp=document.getElementById('buyPanel'); if(bp)bp.style.display='none'; }
   const qa=document.getElementById('playQueueArea'), va=document.getElementById('playVetoArea'), ia=document.getElementById('playIglArea'),
         da=document.getElementById('playDecidingArea'), mb=document.getElementById('playMapBox'), ca=document.getElementById('playControlsArea'),
         ra=document.getElementById('resultArea'), ev=document.getElementById('evLog');
@@ -2494,14 +2505,14 @@ function renderPlay(){
     const L=ensureLeague(); const qb=document.getElementById('queueBtn');
     const nm=document.getElementById('nextMatch'); updateShell();
     const myS=Math.round(rp().reduce((a,p)=>a+ovr(p),0)/5);
-    if(L.week<L.fixtures.length){ const t=L.teams[L.fixtures[L.week].opp]; const tS=Math.round(t.players.reduce((a,p)=>a+ovr(p),0)/5);
+    if(L.week<L.fixtures.length){ const t=L.teams[L.fixtures[L.week].opp]; const tS=Math.round(t.players.reduce((a,p)=>a+ovr(p),0)/5), W=Math.round(100*Math.pow(myS,3)/(Math.pow(myS,3)+Math.pow(tS,3)));
       qb.textContent='Play Match Day';
       nm.innerHTML=`<div class="hk">Match Day ${L.week+1} of ${L.fixtures.length} · ${dateLabel(L.week)} · ${DIVS[L.div].name}</div>
         <div class="vs"><div class="side">${crestSVG(MY_TEAM,145)}<b>${MY_TEAM}</b><span>Team rating ${myS}</span></div>
         <div class="vsx">VS</div>
         <div class="side">${crestSVG(t.name)}<b>${t.name}</b><span>Team rating ${tS}</span></div></div>
-        <div class="odds"><i style="width:${Math.round(100*Math.pow(myS,3)/(Math.pow(myS,3)+Math.pow(tS,3)))}%"></i></div>
-        <div class="hk2">Win chance ${Math.round(100*Math.pow(myS,3)/(Math.pow(myS,3)+Math.pow(tS,3)))}% · Official league match · Mirage · First to 13</div>`;
+        <div class="wc"><span style="color:#5ee08a">${W}%</span><b>WIN CHANCE</b><span style="color:#ff8a8a">${100-W}%</span></div><div class="odds"><i style="width:${W}%"></i></div>
+        <div class="hk2">Official league match · Mirage · First to 13</div>`;
       const fl=roster.friendliesLeft??2, fb=document.getElementById('friendlyBtn'); fb.disabled=fl<=0; fb.textContent=fl>0?`Play friendly (${fl} left this week)`:'No friendlies left — play the Match Day';
     } else { qb.textContent='View final standings'; nm.innerHTML=`<div class="hk">Season ${L.season} complete</div><div class="vs"><div class="side">${crestSVG(MY_TEAM,145)}<b>${MY_TEAM}</b><span>Start the next season from the League tab</span></div></div>`; }
     renderHomeExtra();
@@ -2545,8 +2556,8 @@ function renderPlay(){
   if(match.phase==='deciding'){ da.style.display=''; document.getElementById('decidingText').textContent='IGL is thinking…'; return; }
   if(match.phase==='preview'){
     mb.style.display=''; ca.style.display=''; ev.style.display='none';
-    if(match.mode==='match'){ const pr=match.pending; document.getElementById('calledInfo').textContent=`Round ${match.round+1} · ${pr.buyMe.type} vs ${pr.buyBot.type} · Your IGL: "${pr.planMe.name}" · Their IGL: "${pr.planBot.name}"`; }
-    else { const t=savedTactics.find(x=>x.id===match.tacticId); document.getElementById('calledInfo').textContent=`IGL called: "${t.name}"`; }
+    if(match.mode==='match'){ const pr=match.pending; document.getElementById('calledInfo').textContent=`Round ${match.round+1} · ${pr.buyMe.type} vs ${pr.buyBot.type} · Your IGL: "${pr.planMe.name}" · Their IGL: "${pr.planBot.name}"`; renderBuyPanel(pr); }
+    else { const bp=document.getElementById('buyPanel'); if(bp)bp.style.display='none'; const t=savedTactics.find(x=>x.id===match.tacticId); document.getElementById('calledInfo').textContent=`IGL called: "${t.name}"`; }
     while(playRouteLayer.firstChild)playRouteLayer.removeChild(playRouteLayer.firstChild);
     while(playDotLayer.firstChild)playDotLayer.removeChild(playDotLayer.firstChild);
     Object.keys(playDots).forEach(k=>delete playDots[k]);
