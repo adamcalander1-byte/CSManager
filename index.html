@@ -338,9 +338,23 @@ table.sb td{padding:7px 6px;border-bottom:1px solid #202b3a;font-variant-numeric
 .lu-card{padding:22px 2px 2px;} .lu-ovr{position:static;text-align:center;font-size:24px;margin-top:-16px;}
 .lu-igl{top:3px;right:3px;} .lu-name{font-size:12px;padding:2px 2px 1px;}
 .lu-name span{display:block;font-size:16px;margin:0 0 1px;}
+
+#intro{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px calc(24px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(24px + env(safe-area-inset-left,0px));text-align:center;color:#fff;
+ background:radial-gradient(ellipse at 50% 35%,#1d2b40 0%,#0b1119 70%);transition:opacity .45s,transform .45s}
+#intro.out{opacity:0;transform:scale(1.04);pointer-events:none}
+#intro .ilogo{width:96px;height:96px;border-radius:24px;display:flex;align-items:center;justify-content:center;font:800 44px 'Barlow Condensed',sans-serif;color:#1c1403;background:linear-gradient(180deg,#f7d160,#e8b21f);box-shadow:0 10px 40px rgba(232,178,31,.35);animation:ipop .7s ease-out}
+#intro h1{font:800 54px/1 'Barlow Condensed',sans-serif;letter-spacing:1px;margin:6px 0 0;animation:ifade .8s .15s both}
+#intro .itag{font:500 16px 'Barlow',sans-serif;color:#9fb0c6;max-width:300px;animation:ifade .8s .3s both}
+#intro .iteam{font:700 13px 'JetBrains Mono',monospace;color:#f2c14e;letter-spacing:.12em;text-transform:uppercase;animation:ifade .8s .45s both}
+#intro button{margin-top:18px;min-width:220px;padding:15px 30px;border:0;border-radius:12px;background:linear-gradient(180deg,#f7d160,#e8b21f);color:#1c1403;font:800 22px 'Barlow Condensed',sans-serif;letter-spacing:.8px;box-shadow:0 4px 0 #a97b0c,0 10px 24px rgba(0,0,0,.4);cursor:pointer;animation:ifade .8s .6s both}
+#intro button:active{transform:translateY(3px);box-shadow:0 1px 0 #a97b0c}
+@keyframes ipop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes ifade{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
+<div id="intro"><div class="ilogo">CS</div><h1>CS MANAGER</h1><div class="itag">Build the squad. Call the rounds. Climb the league.</div><div class="iteam" id="introTeam"></div><button id="introGo">Continue</button></div>
+
 <div class="wrap">
   <div class="topbar">
     <button class="hamburger" id="menuBtn" aria-label="Menu">☰</button>
@@ -891,6 +905,8 @@ function updateShell(){ const c=document.getElementById('creditsVal'); if(c)c.te
     const done=ok=>{ if(fin)return; fin=true; if(ok)setTeamName(i.value); tl.textContent=''; updateShell(); const cr=document.getElementById('myCrest'); if(cr)cr.innerHTML=crestSVG(MY_TEAM,145); };
     i.onkeydown=e=>{ if(e.key==='Enter')done(true); else if(e.key==='Escape')done(false); }; i.onblur=()=>done(true); };
   setTimeout(()=>{ updateShell(); },0); })();
+(function(){ const it=document.getElementById('introTeam'); if(it)it.textContent=MY_TEAM+(roster.league?' · Season '+roster.league.season+' · '+DIVS[roster.league.div].name:'');
+  const go=document.getElementById('introGo'), ov=document.getElementById('intro'); if(go)go.onclick=()=>{ ov.classList.add('out'); setTimeout(()=>ov.remove(),500); }; })();
 const roleBadge=r=>`<span class="rb r${r}">${r}</span>`;
 function playerCard(p,opts){
   const card=mkDiv('rcard tr'+p.tier+(p.variant==='hero'?' hero':''));
