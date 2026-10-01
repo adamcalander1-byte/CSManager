@@ -350,10 +350,31 @@ table.sb td{padding:7px 6px;border-bottom:1px solid #202b3a;font-variant-numeric
 #intro button:active{transform:translateY(3px);box-shadow:0 1px 0 #a97b0c}
 @keyframes ipop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes ifade{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+button,.tbtn,.chip2,.bigbtn{min-height:44px;-webkit-tap-highlight-color:transparent;transition:transform .08s,filter .15s}
+button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
+#tabbar button{position:relative;min-height:54px}
+#tabbar button.on::before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 4px 4px;background:var(--gold,#f2c14e)}
+#tabbar button.on{color:var(--gold,#f2c14e)}
+#playPage,#rosterPage,#marketPage,#leaguePage,#statsPage,#trainPage{animation:pfade .28s ease-out}
+@keyframes pfade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rcard,.resultcard,.goalcard{border-radius:16px}
+.goalcard{background:#131b27;border:1px solid #2a3a52;padding:12px;margin:8px 0}
+.goalrow{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:13px}
+.goalrow i{flex:1;height:8px;background:#1a2433;border-radius:5px;overflow:hidden}.goalrow i b{display:block;height:100%;background:linear-gradient(90deg,#f2c14e,#ffd98a)}
+.goalrow button{min-height:34px;padding:4px 10px}
+.tipbox{background:#16202e;border-left:3px solid #f2c14e;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.4}
+.mvpcard{display:flex;align-items:center;gap:12px;background:linear-gradient(160deg,#3a2f12,#1a1608);border:1px solid #b78a1f;border-radius:16px;padding:12px;margin:8px 0}
+.mvpcard .mv{font:800 28px 'Barlow Condensed',sans-serif;color:#f2c14e}
+#toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#0b1119;border:1px solid #f2c14e;color:#fff;padding:10px 16px;border-radius:12px;font:600 14px 'Chakra Petch',sans-serif;opacity:0;pointer-events:none;transition:.3s;z-index:300;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#tour{position:fixed;inset:0;z-index:250;background:rgba(5,8,12,.88);display:flex;align-items:center;justify-content:center;padding:24px}
+#tour .tc{background:#131b27;border:1px solid #f2c14e;border-radius:18px;padding:22px;max-width:340px;text-align:center}
+#tour h3{font:800 28px 'Barlow Condensed',sans-serif;margin:6px 0;color:#f2c14e}#tour p{color:#c2cede;font-size:14px;line-height:1.45;margin:6px 0 14px}
 </style>
 </head>
 <body>
-<div id="intro"><div class="ilogo">CS</div><h1>CS MANAGER</h1><div class="itag">Build the squad. Call the rounds. Climb the league.</div><div class="iteam" id="introTeam"></div><button id="introGo">Continue</button></div>
+<div id="toast"></div><div id="intro"><div class="ilogo">CS</div><h1>CS MANAGER</h1><div class="itag">Build the squad. Call the rounds. Climb the league.</div><div class="iteam" id="introTeam"></div><button id="introGo">Continue</button></div>
 
 <div class="wrap">
   <div class="topbar">
@@ -443,6 +464,7 @@ table.sb td{padding:7px 6px;border-bottom:1px solid #202b3a;font-variant-numeric
     <div id="playQueueArea">
       <div class="hero" id="nextMatch"></div>
       <button class="bigbtn" id="queueBtn">Play league match</button>
+      <div id="homeExtra"></div>
       <div class="friendly"><div class="flabel">Friendlies</div><div class="note fnote">Practice matches before the next Match Day. Players gain XP and improve — harder opponents give more.</div><div class="diffrow" id="diffRow"></div>
       <button class="tbtn" id="friendlyBtn">Start friendly</button></div>
       <div class="sectitle">Map pool</div>
@@ -906,14 +928,14 @@ function updateShell(){ const c=document.getElementById('creditsVal'); if(c)c.te
     i.onkeydown=e=>{ if(e.key==='Enter')done(true); else if(e.key==='Escape')done(false); }; i.onblur=()=>done(true); };
   setTimeout(()=>{ updateShell(); },0); })();
 (function(){ const it=document.getElementById('introTeam'); if(it)it.textContent=MY_TEAM+(roster.league?' · Season '+roster.league.season+' · '+DIVS[roster.league.div].name:'');
-  const go=document.getElementById('introGo'), ov=document.getElementById('intro'); if(go)go.onclick=()=>{ ov.classList.add('out'); setTimeout(()=>ov.remove(),500); }; })();
+  const go=document.getElementById('introGo'), ov=document.getElementById('intro'); if(go)go.onclick=()=>{ ov.classList.add('out'); setTimeout(()=>{ov.remove(); if(!roster.toured)startTour();},500); }; })();
 const roleBadge=r=>`<span class="rb r${r}">${r}</span>`;
 function playerCard(p,opts){
   const card=mkDiv('rcard tr'+p.tier+(p.variant==='hero'?' hero':''));
   const lead=(p.igl>=62&&p.igl>=(p.aim+p.pos+p.util+p.clutch)/4+6)?'<span class="rb rLead" title="Can call rounds as IGL">Leader</span>':'';
   const protag=p.isPro?'<span class="rb rPro">PRO</span>':'';
   const vtag=p.variant&&p.variant!=='std'?`<span class="vtag v${p.variant}">${p.vlabel}</span>`:'';
-  card.innerHTML=`<div class="rtop"><div class="ovr">${ovr(p)}</div><div class="rname"><span class="flag">${flag(p.cc)}</span>${p.name}</div></div>
+  card.innerHTML=`<div class="rtop"><div class="ovr">${ovr(p)}</div><div class="rname"><span class="flag">${flag(p.cc)}</span>${p.name}${p.owned?' <span title="Morale '+(p.morale??60)+'" style="font-size:15px">'+moodE(p)+'</span>':''}</div></div>
     <div class="rteam"><span>${p.team||''}</span><span class="tier t${p.tier}">${p.rarity||p.tier}</span></div>
     <div class="rbadges">${protag}${roleBadge(p.bestRole)}${lead}${vtag}</div>`;
   card.appendChild(statBars(p));
@@ -963,7 +985,7 @@ let marketFilter='All', marketSort='rating';
 
 // ============ STATS DASHBOARD · TRAINING · TRADING ============
 roster.hist=roster.hist||[]; roster.heat=roster.heat||{k:{},d:{}}; roster.an=roster.an||{side:{},buy:{}}; roster.trained=roster.trained||{};
-function recordHeat(k,ks){ const H=roster.heat, key=Math.floor(k.vx/40)+','+Math.floor(k.vy/40); const t=ks==='m'?H.k:H.d; t[key]=(t[key]||0)+1; }
+function recordHeat(k,ks){ if(match)(match.kv=match.kv||[]).push({x:k.vx,y:k.vy,m:ks==='m'});  const H=roster.heat, key=Math.floor(k.vx/40)+','+Math.floor(k.vy/40); const t=ks==='m'?H.k:H.d; t[key]=(t[key]||0)+1; }
 let statHeat='k';
 function renderStats(){
   const box=document.getElementById('statsBody'), H=roster.hist||[];
@@ -1494,6 +1516,11 @@ function generateBots(mySide,plan){
 
 function myStatsFor(id){ return rp()[parseInt(id.slice(1),10)-1]; }
 
+// Real utility lineups per site: smoke / flash landing spots (map coords). Edit these to move a lineup.
+const LINEUPS={
+  A:{smoke:[{n:'CT',x:545,y:965},{n:'Jungle',x:640,y:850},{n:'Stairs',x:760,y:890}], flash:[{n:'site pop',x:700,y:990},{n:'Jungle pop',x:640,y:880}], molly:[{n:'Default',x:705,y:1050},{n:'Jungle',x:650,y:905}]},
+  B:{smoke:[{n:'Market',x:215,y:420},{n:'Bench',x:400,y:330},{n:'Window',x:330,y:200}], flash:[{n:'site pop',x:226,y:262},{n:'Bench pop',x:380,y:300}], molly:[{n:'Default',x:235,y:255},{n:'Bench',x:375,y:315}]}
+};
 function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,plans){
   plans=plans||{};
   const coord={me:0.9+0.2*Math.min(1,iglMe/100),bot:0.9+0.2*Math.min(1,iglBot/100)};
@@ -1529,6 +1556,30 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   function throwFlash(u,pt,t){ pt=snapPt(pt); util.push({t,type:'flash',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
     const dur=1.2+1.6*(u.stats.util/100);
     foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<170&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
+  const inv=u=>u.inv||(u.inv=(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
+  const fires=[]; let pmDone=false;
+  const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
+  function utilHit(o,e,dmg,t,kind){ if(!e.alive)return; if(e.armor)dmg*=0.55; dmg*=0.8+0.4*(o.stats.util||60)/100; dmg=Math.round(dmg); const real=Math.min(e.hp,dmg); e.hp-=dmg; dmgDealt[o.key]=(dmgDealt[o.key]||0)+real;
+    const db=dmgBy[e.key]=dmgBy[e.key]||{}; db[o.key]=(db[o.key]||0)+real; (hpLog[e.key]=hpLog[e.key]||[]).push({t,hp:Math.max(0,e.hp)});
+    if(e.hp<=0){ e.alive=false; e.deathT=t; e.queue=[]; deaths.push({t,side:e.side,pos:{...e.pos}});
+      killLog.push({t,k:o.key,v:e.key,a:null,w:kind==='he'?'HE Grenade':'Molotov',hs:false,blind:false,kx:o.pos.x,ky:o.pos.y,vx:e.pos.x,vy:e.pos.y,hpLeft:Math.max(0,o.hp)});
+      events.push({t,x:e.pos.x,y:e.pos.y,side:o.side,text:nameOf(o)+(kind==='he'?' blows up ':' burns down ')+nameOf(e)}); } }
+  function throwMolly(u,pt,t){ pt=snapPt(pt); util.push({t,type:'molly',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y}); fires.push({t:t+0.8,x:pt.x,y:pt.y,r:75,dur:7,o:u}); }
+  function throwHE(u,pt,t){ pt=snapPt(pt); util.push({t,type:'he',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
+    foesOf(u).forEach(e=>{ const d=dist(e.pos,pt); if(d<170&&losClear(e.pos,pt))utilHit(u,e,98*(1-d/170),t+0.8,'he'); }); }
+  function fireTick(t){ fires.forEach(f=>{ if(t<f.t||t>=f.t+f.dur)return; foesOf(f.o).forEach(e=>{ if(dist(e.pos,f)>=f.r)return; utilHit(f.o,e,13,t,'molly');
+      if(e.alive){ const dx=e.pos.x-f.x,dy=e.pos.y-f.y,L=Math.hypot(dx,dy)||1; pathQ(e,{x:e.pos.x+dx/L*110,y:e.pos.y+dy/L*110}); e.broke=true; e.auto=true; e.wait=0; setAct(e,'out of fire',t); } }); }); }
+  const utilQ=[];
+  // Timing depends on the thrower's util stat: a high-util player waits for the right moment (teammate about to enter), a low-util player throws early, late, or wastes it.
+  const sched=(u,kind,spot,after,maxT,rng,jit)=>{ if(!u||inv(u)[kind]<=0)return false; inv(u)[kind]--; const ts=u.stats.util/100, now=spot.n==='bomb';
+    if(Math.random()<(1-ts)*0.25)return true; // forgot it / wasted it
+    const ideal={smoke:520,flash:130,molly:330,he:200}[kind], th=Math.max(40,ideal+(Math.random()*2-1)*(1-ts)*(kind==='smoke'?350:220));
+    utilQ.push({u,kind,spot,after:after+(now?(1-ts)*3.5:0),maxT:maxT+(now?4:0),rng,jit,th,now}); return true; };
+  const leadD=w=>{ let m=1e9; for(const z of all){ if(!z.alive||z.side!==w.u.side||z===w.u)continue; m=Math.min(m,dist(z.pos,w.spot)); } return m===1e9?0:m; };
+  function runUtil(t){ for(let i=utilQ.length-1;i>=0;i--){ const w=utilQ[i]; if(!w.u.alive){utilQ.splice(i,1);continue;} if(t<w.after)continue;
+    if(dist(w.u.pos,w.spot)>w.rng||(!w.now&&leadD(w)>w.th)){ if(t>=w.maxT)utilQ.splice(i,1); continue; }
+    const pt={x:w.spot.x+(Math.random()-0.5)*2*w.jit,y:w.spot.y+(Math.random()-0.5)*2*w.jit};
+    ({smoke:throwSmoke,flash:throwFlash,molly:throwMolly,he:throwHE})[w.kind](w.u,pt,t); setAct(w.u,w.kind+' '+w.spot.n,t); utilQ.splice(i,1); } }
   const holdDir=u=>{ const tgt=u.side===attSide?CTSPAWN:TSPAWN; const pth=pathPts(u.pos,tgt); const n=pth[0]||tgt; return Math.atan2(n.y-u.pos.y,n.x-u.pos.x); };
   const state={me:{site:null,committed:false,switched:false,lastRot:-99,called:false},bot:{site:null,committed:false,switched:false,lastRot:-99,called:false}};
   let planted=false,plantSite=null,plantTime=0,plantProg={A:0,B:0},defProg=0,winner=null,endT=0;
@@ -1563,7 +1614,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     if(trader===a){eA*=1.25;nA_.push('trade');} if(trader===b){eB*=1.25;nB_.push('trade');}
     eA*=(0.9+Math.random()*0.2); eB*=(0.9+Math.random()*0.2);
     const mkS=(u,e,st)=>{ const W=WSTAT[u.stats.weapon]||WSTAT['AK-47'], holding=st.cmd!=='move';
-      const react=0.2+(1-u.stats.aim/100)*0.3+Math.random()*0.12-(holding?0.07:0)+(u.blindUntil>t?0.9:0)+(u.cool>t?0.25:0)-(trader===u?0.06:0);
+      const react=0.2+(1-u.stats.aim/100)*0.3-(teamOf(u.side).length===1?(u.stats.clutch-60)*0.0015:0)+Math.random()*0.12-(holding?0.07:0)+(u.blindUntil>t?0.9:0)+(u.cool>t?0.25:0)-(trader===u?0.06:0);
       return {u,e,W,holding,next:Math.max(0.05,react),n:0}; };
     const A=mkS(a,eA,sa), B=mkS(b,eB,sb); A.opp=B; B.opp=A;
     const MAXD=2.4; let killer=null, victim=null, kShot=null;
@@ -1574,6 +1625,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       if(!S.holding) acc*=W.run;
       if(spray) acc*=Math.max(0.45,1-0.07*S.n);
       if(S.u.blindUntil>tt) acc*=0.25;
+      if(teamOf(S.u.side).length===1) acc*=1+(S.u.stats.clutch-60)*0.004; // 1vX composure
       acc=Math.min(0.92,Math.max(0.03,acc));
       const hit=Math.random()<acc; let dmg=0,hs=false,legs=false;
       if(hit){
@@ -1653,7 +1705,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   }
   function think(u,t){
     if(u.saving||u.retakeAll) return;
-    const sense=Math.min(1,u.stats.pos/100), isAtt=u.side===attSide;
+    const sense=Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100), isAtt=u.side===attSide;
     const mates=teamOf(u.side), foes=teamOf(u.side==='me'?'bot':'me');
     // 1) round is lost -> save the weapon (keeps it for next round's economy)
     if(mates.length<=2 && foes.length-mates.length>=2){
@@ -1747,9 +1799,11 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const go=st.committed||t>=st.execT||early||t>ROUND_LEN*0.72;
         if(free.length&&go&&(free.length>=need||t>st.execT+8||t>ROUND_LEN*0.6||st.committed)){
           if(!st.committed){st.committed=true;say(PLANTS[st.site].x,PLANTS[st.site].y,t<st.execT-2?'up a man, speeding it up — hitting '+st.site:'everyone set, hitting '+st.site);
-            const P=PLANTS[st.site], tU=free.slice().sort((a,b)=>b.stats.util-a.stats.util);
-            const off=()=>(Math.random()-0.5)*(1-q)*160; const sm1={x:P.x+(CTSPAWN.x-P.x)*0.45+off(),y:P.y+(CTSPAWN.y-P.y)*0.45+off()}, sm2={x:P.x+(CONNECTOR.x-P.x)*0.6+off(),y:P.y+(CONNECTOR.y-P.y)*0.6+off()};
-            if(tU[0])throwSmoke(tU[0],sm1,t); if(tU[1])throwSmoke(tU[1],sm2,t); if(tU[2])throwFlash(tU[2],SITE_HOLD[st.site][0],t+1.5); }
+            const L=LINEUPS[st.site], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util), sm=L.smoke.slice(), fs=L.flash.slice(), usedS=new Set(), usedF=new Set();
+            ut.forEach(u=>{ if(!sm.length||usedS.has(u)||u===carrier)return; if(sched(u,'smoke',sm[0],t+0.5,t+16,470,jit+(1-u.stats.util/100)*40)){usedS.add(u);sm.shift();} });
+            ut.forEach(u=>{ if(!fs.length||usedF.has(u))return; if(sched(u,'flash',fs[0],t+3,t+22,400,jit*0.6+(1-u.stats.util/100)*30)){usedF.add(u);fs.shift();} });
+            ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+4,t+22,420,jit*0.5+20));
+            ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+6,t+24,380,25)); }
           free.sort((a,b)=>b.stats.aim-a.stats.aim).forEach((u,i)=>{pathQ(u,SITE_HOLD[st.site][i%4]);u.wait=t+1.6+(u===carrier?2.4:0)+i*(0.25+(1-q)*1.6);setAct(u,'executing '+st.site,t);});
         }
         if(st.committed&&carrier&&carrier.alive&&carrier.side===side&&!carrier.queue.length&&dist(carrier.pos,PLANTS[st.site])>60){ pathQ(carrier,PLANTS[st.site]); }
@@ -1769,7 +1823,11 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
           team.forEach(u=>{ if(!u.retakeAll){ u.retakeAll=true; u.saving=false; u.back=null; u.broke=true; u.auto=true; u.wait=0; pathQ(u,PLANTS[plantSite]); setAct(u,'defusing',t); } });
           return; }
         if(free.length&&(free.length>=need||since>18)){
-          if(!st.called){st.called=true;say(PLANTS[plantSite].x,PLANTS[plantSite].y,'retake on '+plantSite); const fl=free.slice().sort((a,b)=>b.stats.util-a.stats.util)[0]; if(fl)throwFlash(fl,PLANTS[plantSite],t+1);}
+          if(!st.called){st.called=true;say(PLANTS[plantSite].x,PLANTS[plantSite].y,'retake on '+plantSite); const L=LINEUPS[plantSite], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util);
+            ut.filter(u=>inv(u).smoke>0).slice(0,2).forEach((u,i)=>sched(u,'smoke',L.smoke[i+1],t,t+14,470,jit+(1-u.stats.util/100)*40));
+            ut.filter(u=>inv(u).flash>0).slice(0,2).forEach((u,i)=>sched(u,'flash',L.flash[i],t+2.5,t+20,400,jit*0.6+(1-u.stats.util/100)*30));
+            ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+1,t+16,420,jit*0.5+20));
+            ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+3,t+18,380,25));}
           free.forEach((u,i)=>{pathQ(u,PLANTS[plantSite]);u.wait=t+i*0.4;setAct(u,'retaking',t);});
         } else free.forEach(u=>{ if(dist(u.pos,PLANTS[plantSite])>420&&Math.random()<0.15){ pathQ(u,SITE_HOLD[plantSite][Math.floor(Math.random()*4)]); } });
       } else {
@@ -1828,7 +1886,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t);addSight('bot',m.pos,t);}
       }
     }
-    if(Math.floor(t)!==Math.floor(t-STEP)){hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
+    if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);fireTick(t);hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
       for(const u of all){ if(!u.alive)continue; let best=null,bd=750;
         for(const e of all){ if(!e.alive||e.side===u.side)continue; const d=dist(u.pos,e.pos); if(d<bd&&seeClear(u.pos,e.pos)){bd=d;best=e;} }
         if(best){u.aimAt={x:best.pos.x,y:best.pos.y};u.aimUntil=t+1.1;}
@@ -1849,8 +1907,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         else plantProg[s]=0;
       }
     } else {
-      const P=PLANTS[plantSite], at=defA.some(u=>dist(u.pos,P)<PR), cont=attA.some(u=>dist(u.pos,P)<CR);
+      const P=PLANTS[plantSite], at=defA.some(u=>dist(u.pos,P)<PR&&!inFire(u,t)), cont=attA.some(u=>dist(u.pos,P)<CR);
       if(at&&!cont)defProg+=STEP; else defProg=0;
+      if(defProg>0&&!pmDone){ pmDone=true; attA.forEach(u=>sched(u,'molly',{n:'bomb',x:P.x,y:P.y},t,t+6,420,12)); }
       if(defProg>=DEFUSE_T){winner=defSide;events.push({t,x:P.x,y:P.y,side:defSide,text:'Bomb defused'});break;}
       if(t-plantTime>=FUSE){winner=attSide;events.push({t,x:P.x,y:P.y,side:attSide,text:'Bomb detonates'});break;}
       if(defA.length===0){winner=attSide;events.push({t,x:P.x,y:P.y,side:attSide,text:'No defenders left — bomb will go off'});break;}
@@ -1993,7 +2052,7 @@ function roleOf(i){ const p=rp()[i]; return (p&&p.role)||(p&&p.bestRole)||ROLES[
 function formOf(p){ return p&&p.form!=null?p.form:50; }
 function effStats(p,gear,role,form){
   const fit=(!p.bestRole||p.bestRole===role)?1.02:0.93;   // natural role bonus / off-role penalty
-  const f=(0.94+form*0.0012)*fit;
+  const f=(0.94+form*0.0012)*fit*(1+((p.morale??60)-60)*0.0007);
   return {...p,aim:p.aim*f,pos:p.pos*f,clutch:p.clutch*f,util:p.util*fit,gear,role};
 }
 function genTeam(name,strength){
@@ -2080,6 +2139,9 @@ function prepareRound(){
 function applyRound(pr){
   const m=match, res=pr.res, won=res.winner==='me';
   { const A=roster.an=roster.an||{side:{},buy:{}}; (A.side[pr.side]=A.side[pr.side]||[0,0])[won?0:1]++; (A.buy[pr.buyMe.type]=A.buy[pr.buyMe.type]||[0,0])[won?0:1]++; }
+  { const G=goalsNow(), K=res.kills||[], dth=K.filter(k=>k.v.startsWith('me')).length;
+    if(won&&(m.round===0||m.round===12))G.p.pistol++; if(won&&dth>=2)G.p.clutch++; G.p.kills+=K.length-dth;
+    const S=m.sw=m.sw||{T:[0,0],CT:[0,0]}; S[pr.side][won?0:1]++; }
   const kMe=[0,0,0,0,0],kBot=[0,0,0,0,0];
   (res.kills||[]).forEach(k=>{
     const ks=k.k.startsWith('me')?'m':'b', vs=k.v.startsWith('me')?'m':'b';
@@ -2123,6 +2185,9 @@ function finishMatch(){
   const ratings=[0,1,2,3,4].map(i=>rating(m.stats['m'+i],R));
   m.ratings=ratings; m.botRatings=[0,1,2,3,4].map(i=>rating(m.stats['b'+i],R));
   const best=ratings.indexOf(Math.max(...ratings));
+  { const avgO=rp().reduce((a,p)=>a+ovr(p),0)/5; m.mood=[]; if(won&&m.league)goalsNow().p.win=1;
+    roster.market.filter(p=>p.owned).forEach(p=>{ const i=roster.slots.indexOf(p.id); const d=i>=0?(won?5:-5)+(i===best?6:0):(ovr(p)>=avgO?-6:-2);
+      p.morale=clamp((p.morale??60)+d,10,100); if(i<0&&p.morale<35)m.mood.push(p.name); }); }
   (roster.hist=roster.hist||[]).push({w:won,s:[m.score.me,m.score.bot],opp:m.opp.name,r:+(ratings.reduce((a,b)=>a+b,0)/5).toFixed(2)}); if(roster.hist.length>60)roster.hist.shift();
   roster.slots.forEach((id,i)=>{ const p=roster.market.find(x=>x.id===id); if(!p)return;
     p.form=clamp(formOf(p)+(won?6:-4)+(i===best?4:0)+Math.round((ratings[i]-1)*6),20,95);
@@ -2231,6 +2296,35 @@ function renderHub(){
   document.getElementById('hbSimH').onclick=()=>hubSimRounds(m.round<12?12-m.round:m.round<24?24-m.round:3-((m.round-24)%3));
   document.getElementById('hbSimE').onclick=()=>hubSimRounds(60);
 }
+
+// ============ HOME · POST-MATCH · GOALS · MORALE · TOUR ============
+const moodE=p=>{ const m=p.morale??60; return m>=75?'😄':m>=50?'🙂':m>=30?'😐':'😠'; };
+function toast(t){ const e=document.getElementById('toast'); if(!e)return; e.textContent=t; e.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>e.classList.remove('show'),2600); }
+document.addEventListener('click',e=>{ if(e.target.closest('button')&&navigator.vibrate)navigator.vibrate(8); },true);
+const GOALS=[{id:'win',t:'Win your Match Day',n:1,r:600},{id:'pistol',t:'Win 2 pistol rounds',n:2,r:400},{id:'clutch',t:'Win 3 rounds after losing 2+ players',n:3,r:500},{id:'kills',t:'Get 60 team kills',n:60,r:400}];
+function goalsNow(){ const k=roster.league?roster.league.season+'-'+roster.league.week:'0'; if(!roster.goals||roster.goals.k!==k)roster.goals={k,p:{win:0,pistol:0,clutch:0,kills:0},c:{}}; return roster.goals; }
+function renderHomeExtra(){ const box=document.getElementById('homeExtra'); if(!box)return; const G=goalsNow();
+  const st=rp().map(p=>p.morale??60), avgM=Math.round(st.reduce((a,b)=>a+b,0)/5), sad=rp().filter(p=>(p.morale??60)<35).map(p=>p.name);
+  box.innerHTML=`<div class="goalcard"><div class="sectitle" style="margin:0">Weekly goals</div>${GOALS.map(g=>{ const v=Math.min(g.n,G.p[g.id]), done=v>=g.n, cl=G.c[g.id];
+    return `<div class="goalrow"><span style="flex:0 0 150px">${g.t}</span><i><b style="width:${v/g.n*100}%"></b></i>${cl?'<em style="font-style:normal;color:#5ee08a">✓</em>':done?`<button class="tbtn accent" data-g="${g.id}">+${g.r}</button>`:`<em style="font-style:normal;width:36px;text-align:right">${v}/${g.n}</em>`}</div>`; }).join('')}</div>
+    <div class="goalcard" style="display:flex;justify-content:space-between;align-items:center"><span>Team morale ${avgM>=60?'🙂':avgM>=40?'😐':'😠'} <b>${avgM}</b></span><span class="note" style="margin:0">${sad.length?sad.join(', ')+' unhappy':'Wins and playing time keep morale up'}</span></div>`;
+  box.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ const g=GOALS.find(x=>x.id===b.dataset.g); G.c[g.id]=1; roster.money+=g.r; saveRoster(); toast('Goal complete · +'+g.r+' credits'); renderHomeExtra(); updateShell(); }); }
+function reportExtras(){ const m=match, best=m.ratings.indexOf(Math.max(...m.ratings)), b=rp()[best], st=m.stats['m'+best], kv=m.kv||[];
+  const dots=kv.map(d=>`<circle cx="${d.x}" cy="${d.y}" r="14" fill="${d.m?'#3ddc84':'#ff4d4d'}" opacity=".75"/>`).join('');
+  const tips=[], S=m.sw||{};
+  ['T','CT'].forEach(sd=>{ const v=S[sd]; if(v&&v[0]+v[1]>=6&&v[0]/(v[0]+v[1])<0.35)tips.push(`You won only ${v[0]} of ${v[0]+v[1]} rounds on ${sd} side — rework your ${sd} strats in Tactics.`); });
+  const dd=kv.filter(d=>!d.m); if(dd.length>=4){ const bins={}; dd.forEach(d=>{ const k=Math.floor(d.x/120)+','+Math.floor(d.y/120); bins[k]=(bins[k]||0)+1; }); const [bk,bn]=Object.entries(bins).sort((a,c)=>c[1]-a[1])[0];
+    if(bn>=3){ const [bx,by]=bk.split(',').map(Number), cx=bx*120+60, cy=by*120+60, nm=Object.entries(CALLOUTS).sort((a,c)=>Math.hypot(a[1].x-cx,a[1].y-cy)-Math.hypot(c[1].x-cx,c[1].y-cy))[0][0]; tips.push(`${bn} of your deaths came around ${nm}. Avoid repeating the same position there, or add utility.`); } }
+  m.ratings.forEach((r,i)=>{ if(r<0.75&&m.stats['m'+i].d>m.round*0.7)tips.push(`${rp()[i].name} is dying too often (${m.stats['m'+i].k}/${m.stats['m'+i].d}). Move him to a safer role or pair him with a teammate.`); });
+  if(!tips.length)tips.push(m.score.me>m.score.bot?'Clean game. Keep the same plan, and train your weakest player this week.':'Close game. Review the heatmap and try a different default on the side you lost most.');
+  return `<div class="mvpcard"><div style="font-size:30px">🏆</div><div><div class="note" style="margin:0">MVP</div><div class="mv">${b.name}</div><div class="note" style="margin:0">${m.ratings[best].toFixed(2)} rating · ${st.k}/${st.d}/${st.a}</div></div></div>
+   <svg viewBox="0 0 1374 1196" style="width:100%;border-radius:12px;background:#000;margin:6px 0"><image href="${IMG_HREF}" width="1374" height="1196" preserveAspectRatio="none"/>${dots}</svg>
+   <div class="note" style="margin:0 0 6px"><span style="color:#3ddc84">●</span> our kills &nbsp; <span style="color:#ff4d4d">●</span> our deaths</div>
+   ${tips.slice(0,2).map(t=>`<div class="tipbox">💡 ${t}</div>`).join('')}${m.mood&&m.mood.length?`<div class="tipbox">😠 ${m.mood.join(', ')} ${m.mood.length>1?'are':'is'} unhappy on the bench. Give them playing time or sell.</div>`:''}`; }
+function startTour(){ const steps=[['🎯','Play','Your next match sits on the Play tab. Win it for credits, XP and weekly goals.'],['🧠','Squad & Tactics','Set your lineup and roles, and draw strats. Your IGL calls the rounds.'],['📈','Train, Trade & Stats','One drill per player every week, trade in the Market, and study your heatmaps.']]; let i=0;
+  const o=document.createElement('div'); o.id='tour'; document.body.appendChild(o);
+  const show=()=>{ const [e,t,d]=steps[i]; o.innerHTML=`<div class="tc"><div style="font-size:44px">${e}</div><h3>${t}</h3><p>${d}</p><button class="bigbtn" id="tNext">${i<2?'Next':'Let\'s go'}</button><div class="note">${i+1} / 3</div></div>`;
+    o.querySelector('#tNext').onclick=()=>{ if(++i<3)show(); else{ roster.toured=true; saveRoster(); o.remove(); } }; }; show(); }
 function renderReport(){
   const m=match, rep=document.getElementById('reportArea'); rep.style.display='';
   const won=m.score.me>m.score.bot; const best=m.ratings.indexOf(Math.max(...m.ratings));
@@ -2238,6 +2332,7 @@ function renderReport(){
    ${m.seasonEnd?`<div class="resultcard won"><div class="big">SEASON OVER</div>You finished #${m.seasonEnd.pos} · prize ${m.seasonEnd.prize.toLocaleString()} credits${m.seasonEnd.move?'<br><b>'+m.seasonEnd.move+'</b>':''}</div>`:''}
    ${m.growth&&m.growth.length?`<div class="growth">${m.growth.map(g=>'<div>▲ '+g+'</div>').join('')}</div>`:''}
    ${m.friendly?`<div class="note">Friendly played — ${roster.friendliesLeft} left before the next Match Day. Players earned XP.</div>`:''}
+   ${reportExtras()}
    ${scoreboardHTML()}
    <div class="note">Form updated: wins and strong ratings raise form, losses lower it. Form directly affects aim, positioning and clutch.</div>
    <button class="bigbtn" id="repDone">Continue</button>`;
@@ -2287,10 +2382,14 @@ function drawFx(){
     const land=u.type==='smoke'?1.1:0.8;
     if(T>=u.t&&T<u.t+land){ const f=(T-u.t)/land;
       el('line',{x1:u.fx,y1:u.fy,x2:u.x,y2:u.y,stroke:'#fff','stroke-width':2,'stroke-dasharray':'4 6',opacity:'0.35'},playFxOver);
-      el('circle',{cx:u.fx+(u.x-u.fx)*f,cy:u.fy+(u.y-u.fy)*f,r:6,fill:u.type==='smoke'?'#cfd6d8':'#fff'},playFxOver); }
+      el('circle',{cx:u.fx+(u.x-u.fx)*f,cy:u.fy+(u.y-u.fy)*f,r:6,fill:u.type==='smoke'?'#cfd6d8':u.type==='molly'?'#ff7a1a':u.type==='he'?'#8fbf6a':'#fff'},playFxOver); }
     if(u.type==='smoke'&&T>=u.t+land&&T<u.t+land+17){ const age=T-u.t-land, o=age<1?age:age>15.5?(17-age)/1.5:1;
       el('circle',{cx:u.x,cy:u.y,r:78,fill:'#b8c2c6',opacity:(0.55*o).toFixed(2)},playFxUnder);
       el('circle',{cx:u.x,cy:u.y,r:78,fill:'none',stroke:'#e6eef0','stroke-width':2,opacity:(0.5*o).toFixed(2)},playFxUnder); }
+    if(u.type==='molly'&&T>=u.t+land&&T<u.t+land+7){ const age=T-u.t-land, o=age>6?(7-age):1, pu=0.75+0.25*Math.sin(T*9);
+      el('circle',{cx:u.x,cy:u.y,r:75,fill:'#ff6a00',opacity:(0.42*o*pu).toFixed(2)},playFxUnder); el('circle',{cx:u.x,cy:u.y,r:75,fill:'none',stroke:'#ffb347','stroke-width':2.5,opacity:(0.8*o).toFixed(2)},playFxUnder); }
+    if(u.type==='he'&&T>=u.t+land&&T<u.t+land+0.5){ const a=(T-u.t-land)/0.5;
+      el('circle',{cx:u.x,cy:u.y,r:20+150*a,fill:'none',stroke:'#ffb347','stroke-width':(7*(1-a)+1).toFixed(1),opacity:(0.9*(1-a)).toFixed(2)},playFxOver); }
     if(u.type==='flash'&&T>=u.t+land&&T<u.t+land+0.6){ const a=(T-u.t-land)/0.6;
       el('circle',{cx:u.x,cy:u.y,r:30+140*a,fill:'#ffffff',opacity:(0.85*(1-a)).toFixed(2)},playFxOver); }
   });
@@ -2402,9 +2501,10 @@ function renderPlay(){
         <div class="vsx">VS</div>
         <div class="side">${crestSVG(t.name)}<b>${t.name}</b><span>Team rating ${tS}</span></div></div>
         <div class="odds"><i style="width:${Math.round(100*Math.pow(myS,3)/(Math.pow(myS,3)+Math.pow(tS,3)))}%"></i></div>
-        <div class="hk2">Official league match · Mirage · First to 13</div>`;
+        <div class="hk2">Win chance ${Math.round(100*Math.pow(myS,3)/(Math.pow(myS,3)+Math.pow(tS,3)))}% · Official league match · Mirage · First to 13</div>`;
       const fl=roster.friendliesLeft??2, fb=document.getElementById('friendlyBtn'); fb.disabled=fl<=0; fb.textContent=fl>0?`Play friendly (${fl} left this week)`:'No friendlies left — play the Match Day';
     } else { qb.textContent='View final standings'; nm.innerHTML=`<div class="hk">Season ${L.season} complete</div><div class="vs"><div class="side">${crestSVG(MY_TEAM,145)}<b>${MY_TEAM}</b><span>Start the next season from the League tab</span></div></div>`; }
+    renderHomeExtra();
     const pv=document.getElementById('poolPreview'); pv.innerHTML='';
     MAPS.forEach(m=>{const d=document.createElement('div'); d.className='maptile'+(m!=='Mirage'?' disabled':''); d.textContent=m+(m!=='Mirage'?' (soon)':''); pv.appendChild(d);});
     return;
