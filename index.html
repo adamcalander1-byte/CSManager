@@ -632,6 +632,10 @@ function posAt(path,t){
     if(t>=a.t&&t<=b.t){const f=(t-a.t)/(b.t-a.t);return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};}}
   return path[path.length-1];
 }
+function posAtS(P,t){ if(t<=P[0].t)return P[0]; for(let i=0;i<P.length-1;i++){ const b=P[i],c=P[i+1]; if(t>=b.t&&t<=c.t){ const a=P[i-1]||b, d=P[i+2]||c, u=(t-b.t)/(c.t-b.t||1), u2=u*u, u3=u2*u;
+    const cr=(p0,p1,p2,p3)=>0.5*((2*p1)+(-p0+p2)*u+(2*p0-5*p1+4*p2-p3)*u2+(-p0+3*p1-3*p2+p3)*u3);
+    const q={x:cr(a.x,b.x,c.x,d.x),y:cr(a.y,b.y,c.y,d.y)}, cx=(q.x/NAV_G)|0, cy=(q.y/NAV_G)|0;
+    if(cx>=0&&cy>=0&&cx<NAV_W&&cy<NAV_H&&navPath[cy*NAV_W+cx])return q; const ln={x:b.x+(c.x-b.x)*u,y:b.y+(c.y-b.y)*u}, lx=(ln.x/NAV_G)|0, ly=(ln.y/NAV_G)|0; return (lx>=0&&ly>=0&&lx<NAV_W&&ly<NAV_H&&navPath[ly*NAV_W+lx])?ln:(u<0.5?b:c); } } return P[P.length-1]; }
 // which original waypoint (with its command) a unit is "at" at time t, plus its position
 function unitStateAndPos(playerObj,t){
   const pts=[{x:playerObj.x,y:playerObj.y,time:0,cmd:'move'}, ...playerObj.path.map(p=>({...p}))];
@@ -1435,8 +1439,15 @@ function genBotStats(){
   return {aim:base+Math.round((Math.random()-0.5)*16), pos:base+Math.round((Math.random()-0.5)*16), util:base+Math.round((Math.random()-0.5)*16), clutch:base+Math.round((Math.random()-0.5)*16), igl:base+Math.round((Math.random()-0.5)*16)};
 }
 // paths are computed live on the navmesh — no hardcoded lanes, so any target works and always respects walls
+function routePts(a,b,p){ const d=Math.hypot(a.x-b.x,a.y-b.y); let pts=null;
+  if(d>450&&Math.random()<p){ const cands=[...Object.values(CALLOUTS).map(c=>c.w||c),...T_CTRL,...CT_INFO].filter(v=>{ const d1=Math.hypot(a.x-v.x,a.y-v.y), d2=Math.hypot(v.x-b.x,v.y-b.y); return d1>150&&d2>150&&(d1+d2)/d<1.35; });
+    if(cands.length){ const v=snapPt(cands[Math.floor(Math.random()*cands.length)]); pts=pathPts(a,v).concat(pathPts(v,b)); } }
+  pts=pts||pathPts(a,b);
+  const A0=snapPt(a); return pts.map((q,i)=>{ if(!(i>0&&i<pts.length-1))return q; const j=snapPt({x:q.x+(Math.random()-0.5)*30,y:q.y+(Math.random()-0.5)*30}), pr=i===0?A0:pts[i-1], nx=pts[i+1];
+    return (lineClear(pr,j,navPath,0)&&lineClear(j,nx,navPath,0))?j:q; }); // not the exact same line every round, but never through a wall
+}
 function routeToPath(from,to,cmdAtEnd,radiusAtEnd){
-  const pts=pathPts(from,to);
+  const pts=routePts(from,to,0.4);
   return pts.map((p,i)=>({x:p.x,y:p.y,time:null,cmd:i===pts.length-1?cmdAtEnd:'move',radius:i===pts.length-1?radiusAtEnd:null,target:null}));
 }
 // ============ SMART ENGINE: navmesh movement, real line-of-sight, team AI ============
@@ -1528,15 +1539,17 @@ function setupCT(plan,info){
   const A=SITE_HOLD.A,B=SITE_HOLD.B,id=(plan&&plan.id)||'std';
   const spots=[{p:A[0],s:'A',f:0,k:0},{p:A[1],s:'A',f:0,k:1},{p:A[2],s:'A',f:0,k:2},{p:B[0],s:'B',f:0,k:0},{p:B[1],s:'B',f:0,k:1},{p:B[2],s:'B',f:0,k:2},
     {p:CONNECTOR,s:'M',f:1,k:3},{p:CT_INFO[0],s:'M',f:1,k:3},{p:CT_INFO[1],s:'A',f:1,k:3},{p:CT_INFO[2],s:'M',f:1.3,k:3},{p:CT_INFO[3],s:'B',f:1,k:3},{p:CT_INFO[4],s:'B',f:1.3,k:3}];
-  const used=new Set(), out=[];
-  [0,1,2,3,4].forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0);
-    const sp=wpick(spots.filter(x=>!used.has(x)),x=>{ let w=1; w*=x.f?Math.pow(Math.max(0.5,ag),2):Math.max(0.35,2.1-ag);
-      if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2;
-      if(id==='stackA'&&x.s==='A')w*=2.5; if(id==='stackB'&&x.s==='B')w*=2.5; if(id==='midStack'&&x.s==='M')w*=2.5; return w; });
-    used.add(sp); out.push({p:sp.p,r:170+ag*25,s:sp.s,f:sp.f}); });
-  ['A','B'].forEach(s=>{ if(!out.some(o=>o.s===s)){ const j=out.findIndex(o=>o.s==='M')>=0?out.findIndex(o=>o.s==='M'):out.findIndex(o=>o.s!==s&&out.filter(z=>z.s===o.s).length>1); if(j>=0)out[j]={p:SITE_HOLD[s][0],r:200,s,f:0}; } });
+  // the call decides how many go where (so what the IGL says is what the team does); each player decides his own spot inside that split
+  const Q=({std:{A:2,M:1,B:2},stackA:{A:3,M:1,B:1},stackB:{A:1,M:1,B:3},aggro:{A:1,M:3,B:1},passive:{A:2,M:1,B:2},midStack:{A:2,M:2,B:1}}[id]||{A:2,M:1,B:2}); const quota={...Q};
+  const pri={Anchor:0,Support:1,AWP:2,Entry:3,Lurker:4}, order=[0,1,2,3,4].sort((a,b)=>(pri[info.roles[a]]??5)-(pri[info.roles[b]]??5)), used=new Set(), out=[];
+  order.forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0);
+    let pool=spots.filter(x=>!used.has(x)&&quota[x.s]>0); if(!pool.length)pool=spots.filter(x=>!used.has(x));
+    const sp=wpick(pool,x=>{ let w=1; w*=x.f?Math.pow(Math.max(0.5,ag),2):Math.max(0.35,2.1-ag);
+      if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2; return w; });
+    used.add(sp); quota[sp.s]--; out[i]={p:sp.p,r:170+ag*25,s:sp.s,f:sp.f}; });
   return out;
 }
+
 function generateBots(mySide,plan,info){
   const bots={}, stats={};
   const ids=mySide==='T'?['C1','C2','C3','C4','C5']:['T1','T2','T3','T4','T5'];
@@ -1600,8 +1613,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   const foesOf=u=>all.filter(e=>e.alive&&e.side!==u.side);
   function throwSmoke(u,pt,t){ pt=snapPt(pt); util.push({t,type:'smoke',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y}); smokes.push({t:t+1.1,x:pt.x,y:pt.y,r:78,dur:17}); }
   function throwFlash(u,pt,t){ pt=snapPt(pt); util.push({t,type:'flash',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
-    const dur=1.2+1.6*(u.stats.util/100);
-    foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<170&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
+    const dur=1.0+1.8*(u.stats.util/100), rad=150+0.9*u.stats.util; // better utility users blind wider and longer
+    foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<rad&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
   const inv=u=>u.inv||(u.inv=u.stats.grenades?{smoke:0,flash:0,molly:0,he:0,...u.stats.grenades}:(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
   const aggOf=u=>u._agg||(u._agg=Math.min(1.45,Math.max(0.65,0.7+((String(nameOf(u))).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(u.stats.role==='Entry'?0.2:(u.stats.role==='Lurker'||u.stats.role==='AWP')?-0.15:0))));
   all.forEach(u=>{ u.inv0={...inv(u)}; });
@@ -1620,13 +1633,15 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   const utilQ=[];
   // Timing depends on the thrower's util stat: a high-util player waits for the right moment (teammate about to enter), a low-util player throws early, late, or wastes it.
   const sched=(u,kind,spot,after,maxT,rng,jit)=>{ if(!u||inv(u)[kind]<=0)return false; inv(u)[kind]--; const ts=u.stats.util/100, now=spot.n==='bomb';
-    if(Math.random()<(1-ts)*0.25)return true; // forgot it / wasted it
+    if(Math.random()<(1-ts)*0.45)return true; // forgot it / wasted it
     const ideal={smoke:520,flash:170,molly:380,he:290}[kind], th=Math.max(40,ideal+(Math.random()*2-1)*(1-ts)*(kind==='smoke'?350:220));
     utilQ.push({u,kind,spot,after:after+(now?(1-ts)*3.5:0),maxT:maxT+(now?4:0),rng,jit,th,now}); return true; };
   const leadD=w=>{ let m=1e9; for(const z of all){ if(!z.alive||z.side!==w.u.side||z===w.u)continue; m=Math.min(m,dist(z.pos,w.spot)); } return m===1e9?0:m; };
   function runUtil(t){ for(let i=utilQ.length-1;i>=0;i--){ const w=utilQ[i]; if(!w.u.alive){utilQ.splice(i,1);continue;} if(t<w.after)continue;
     if(dist(w.u.pos,w.spot)>w.rng||(!w.now&&leadD(w)>w.th)){ if(t>=w.maxT)utilQ.splice(i,1); continue; }
-    const pt={x:w.spot.x+(Math.random()-0.5)*2*w.jit,y:w.spot.y+(Math.random()-0.5)*2*w.jit};
+    let sp0=w.spot; // good utility users throw at where they actually saw the enemy, not just the stock lineup
+    if(w.kind!=='smoke'&&!w.now&&Math.random()<w.u.stats.util/100){ const hit=intel[w.u.side].filter(z=>z.w>=0.9&&t>=z.shareT&&t-z.t<8&&dist(z.pos,w.spot)<380).sort((a,b)=>b.t-a.t)[0]; if(hit)sp0={x:hit.pos.x,y:hit.pos.y,n:w.spot.n}; }
+    const jj=w.jit+(Math.random()<(1-w.u.stats.util/100)*0.3?110:0), pt={x:sp0.x+(Math.random()-0.5)*2*jj,y:sp0.y+(Math.random()-0.5)*2*jj}; // low util sometimes misthrows the lineup
     ({smoke:throwSmoke,flash:throwFlash,molly:throwMolly,he:throwHE})[w.kind](w.u,pt,t); setAct(w.u,w.kind+' '+w.spot.n,t); utilQ.splice(i,1); } }
   const holdDir=u=>{ const tgt=u.side===attSide?CTSPAWN:TSPAWN; const pth=pathPts(u.pos,tgt); const n=pth[0]||tgt; return Math.atan2(n.y-u.pos.y,n.x-u.pos.x); };
   const state={me:{site:null,committed:false,switched:false,lastRot:-99,called:false},bot:{site:null,committed:false,switched:false,lastRot:-99,called:false}};
@@ -1635,7 +1650,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
 
   function assistFor(x,y){
     for(const z of all){ if(!z.alive||z.side!==x.side||z===x)continue;
-      if(dist(z.pos,x.pos)<350 && seeClear(z.pos,y.pos) && Math.random()<z.stats.util/300) return z; }
+      if(dist(z.pos,x.pos)<350 && seeClear(z.pos,y.pos) && Math.random()<z.stats.util/170) return z; }
     return null;
   }
   function resolve(a,b,t,trader){
@@ -1643,6 +1658,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const nA=teamOf(a.side).length, nB=teamOf(b.side).length;
     let eA=a.stats.aim*0.55+a.stats.pos*0.30+(nA<nB?a.stats.clutch*0.15:0);
     let eB=b.stats.aim*0.55+b.stats.pos*0.30+(nB<nA?b.stats.clutch*0.15:0);
+    eA*=1+((a.stats.clutch-60)/100)*(nA===1?0.35:nA<nB?0.2:0.06); eB*=1+((b.stats.clutch-60)/100)*(nB===1?0.35:nB<nA?0.2:0.06); // composure under pressure
     const bonus=s=>s.cmd==='kill'?1.3:s.cmd==='hold'?1.15:1;
     eA*=bonus(sa); eB*=bonus(sb);
     const dd=dist(a.pos,b.pos);
@@ -1744,7 +1760,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     }
   }
 
-  function pathQ(u,to){u.queue=pathPts(u.pos,to).map(p=>({x:p.x,y:p.y})); u.jiggling=false; u.home=null; u.holdFace=null;}
+  function pathQ(u,to){u.queue=routePts(u.pos,to,0.3).map(p=>({x:p.x,y:p.y})); u.jiggling=false; u.home=null; u.holdFace=null;}
   // ---- individual decision-making: the strat is a plan, not a script ----
   function breakOff(u,t,why,dest,label){
     u.broke=true; u.auto=true; if(label)setAct(u,label,t);
@@ -1754,6 +1770,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   function think(u,t){
     if(u.saving||u.retakeAll) return;
     const sense=Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100), isAtt=u.side===attSide;
+    // run by default; with enemies suspected nearby, players with the sense for it shift-walk (slower, but silent)
+    if(u.walkPref==null)u.walkPref=Math.random()<0.1+sense*0.8;
+    u.walk=!!(u.walkPref&&!planted&&!u.saving&&!(isAtt&&state[u.side].committed)&&know(u,t).some(z=>t-z.t<12&&dist(z.pos,u.pos)<520));
     const mates=teamOf(u.side), foes=teamOf(u.side==='me'?'bot':'me');
     // 1) round is lost -> save the weapon (keeps it for next round's economy)
     if(mates.length<=2 && foes.length-mates.length>=2){
@@ -1770,16 +1789,20 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' takes an aggressive info peek'}); return;
     }
     if(u.back&&t>=u.returnT&&!u.queue.length){ pathQ(u,u.back); u.back=null; setAct(u,'falling back',t); return; }
+    if(!isAtt&&!planted&&idle&&t>25&&!u.fellBack&&Math.min(dist(u.pos,PLANTS.A),dist(u.pos,PLANTS.B))>520&&Math.random()<0.05+(1.3-aggOf(u))*0.03&&!know(u,t).some(z=>t-z.t<15&&dist(z.pos,u.pos)<550)){
+      u.fellBack=true; const sn=dist(u.pos,PLANTS.A)<dist(u.pos,PLANTS.B)?'A':'B'; breakOff(u,t,'nothing happened up front, falls back to '+sn,SITE_HOLD[sn][1+Math.floor(Math.random()*2)],'falling back'); return; }
     if(idle&&!u.adjusted&&t>8){ const mm=(SPOTMEM[u.key]||[]).find(d=>d.att===isAtt&&dist(d,u.pos)<150);
       if(mm){ u.adjusted=true; if(Math.random()<0.3+sense*0.6){ const dx=u.pos.x-mm.x, dy=u.pos.y-mm.y, L=Math.hypot(dx,dy)||1, sg=Math.random()<0.5?1:-1;
         breakOff(u,t,'changes his angle — died here earlier',snapPt({x:u.pos.x-dy/L*150*sg,y:u.pos.y+dx/L*150*sg}),'changing angle'); return; } } }
     // small repositioning around the held angle so nobody freezes
     if(idle&&!u.saving&&t>=u.jig){
       if(!u.home){u.home={x:u.pos.x,y:u.pos.y}; u.holdFace=holdDir(u);}
-      u.strafe=-(u.strafe||1); const r=12+Math.random()*22, pa=(u.holdFace||0)+Math.PI/2;
-      const pt=snapPt({x:u.home.x+Math.cos(pa)*r*u.strafe,y:u.home.y+Math.sin(pa)*r*u.strafe});
-      u.queue=[pt]; u.jiggling=true; u.jig=t+0.7+Math.random()*1.3;
-      if(!u.act||u.act==='following the call'||u.act==='default'||u.act==='setting up')setAct(u,'holding angle',t);
+      const roll=Math.random(), calm=(u.stats.role==='AWP'||u.stats.role==='Anchor')?0.45:0.28;
+      if(roll<calm){ u.jig=t+1+Math.random()*3; }                                  // just stands and listens
+      else { const r=roll<0.82?(25+Math.random()*40):(70+Math.random()*100), sg=Math.random()<0.5?1:-1, ang=(u.holdFace||0)+(Math.random()<0.65?Math.PI/2:Math.random()*6.283);
+        const pt=snapPt({x:u.home.x+Math.cos(ang)*r*sg,y:u.home.y+Math.sin(ang)*r*sg}); u.queue=[pt]; u.jiggling=true; u.jig=t+1.5+Math.random()*4;   // shoulder shift / new angle / small relocation
+        if(r>95&&Math.random()<0.5)u.home=pt;
+        if(!u.act||u.act==='following the call'||u.act==='default'||u.act==='setting up')setAct(u,'holding angle',t); }
     }
     if(u.hp<40&&!u.lowHp&&Math.random()<0.3+sense*0.6){ u.lowHp=true; const hs=isAtt?TSPAWN:CTSPAWN;
       breakOff(u,t,'is low ('+u.hp+' HP) and falls back to play safe',{x:u.pos.x+(hs.x-u.pos.x)*0.12,y:u.pos.y+(hs.y-u.pos.y)*0.12},'falling back'); return; }
@@ -1821,7 +1844,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   function hearSounds(t){
     for(const a of all){ if(!a.alive)continue;
       const moved=a.lastP?dist(a.pos,a.lastP):0; a.lastP={x:a.pos.x,y:a.pos.y};
-      if(moved<25||a.saving)continue;
+      if(moved<25||a.saving||a.walk||a.jiggling)continue; // walking and small shifts are silent
       for(const b of all){ if(!b.alive||b.side===a.side)continue;
         if(dist(a.pos,b.pos)<480&&!losClear(a.pos,b.pos)&&Math.random()<0.45){ addSight(b.side,a.pos,t,0.4,b.key); b.hearAt={pos:{x:a.pos.x,y:a.pos.y},t};
         if(!b.queue.length||b.jiggling){ b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+2; }
@@ -1877,9 +1900,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const go=st.committed||t>=st.execT||early||t>ROUND_LEN*0.72;
         if(free.length&&go&&(free.length>=need||t>st.execT+8||t>ROUND_LEN*0.6||st.committed)){
           if(!st.committed){st.committed=true;say(PLANTS[st.site].x,PLANTS[st.site].y,t<st.execT-2?'up a man, speeding it up — hitting '+st.site:'everyone set, hitting '+st.site);
-            const L=LINEUPS[st.site], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util), sm=L.smoke.slice(), fs=L.flash.slice(), usedS=new Set(), usedF=new Set();
-            ut.forEach(u=>{ if(!sm.length||usedS.has(u)||u===carrier)return; if(sched(u,'smoke',sm[0],t+0.5,t+16,470,jit+(1-u.stats.util/100)*40)){usedS.add(u);sm.shift();} });
-            ut.forEach(u=>{ if(!fs.length||usedF.has(u))return; if(sched(u,'flash',fs[0],t+3,t+22,400,jit*0.6+(1-u.stats.util/100)*30)){usedF.add(u);fs.shift();} });
+            const L=LINEUPS[st.site], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util), sm=L.smoke.filter((sp,i)=>i>0||intel[side].some(z=>t-z.t<25&&dist(z.pos,sp)<420)).sort(()=>Math.random()-0.5).slice(0,2+(Math.random()<0.35?1:0)), fs=L.flash.slice(), usedS=new Set(), usedF=new Set();
+            ut.forEach(u=>{ if(!sm.length||usedS.has(u)||u===carrier)return; if(sched(u,'smoke',sm[0],t+0.5,t+16,470,jit+(1-u.stats.util/100)*100)){usedS.add(u);sm.shift();} });
+            ut.forEach(u=>{ if(!fs.length||usedF.has(u))return; if(sched(u,'flash',fs[0],t+3,t+22,400,jit*0.6+(1-u.stats.util/100)*80)){usedF.add(u);fs.shift();} });
             ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+4,t+22,420,jit*0.5+20));
             ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+6,t+24,430,25)); }
           free.sort((a,b)=>b.stats.aim-a.stats.aim).forEach((u,i)=>{pathQ(u,SITE_HOLD[st.site][i%4]);u.wait=t+1.6+(u===carrier?2.4:0)+i*(0.25+(1-q)*1.6);setAct(u,'executing '+st.site,t);});
@@ -1902,8 +1925,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
           return; }
         if(free.length&&(free.length>=need||since>18)){
           if(!st.called){st.called=true;say(PLANTS[plantSite].x,PLANTS[plantSite].y,'retake on '+plantSite); const L=LINEUPS[plantSite], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util);
-            ut.filter(u=>inv(u).smoke>0).slice(0,2).forEach((u,i)=>sched(u,'smoke',L.smoke[i+1],t,t+14,470,jit+(1-u.stats.util/100)*40));
-            ut.filter(u=>inv(u).flash>0).slice(0,2).forEach((u,i)=>sched(u,'flash',L.flash[i],t+2.5,t+20,400,jit*0.6+(1-u.stats.util/100)*30));
+            ut.filter(u=>inv(u).smoke>0).slice(0,2).forEach((u,i)=>sched(u,'smoke',L.smoke[i+1],t,t+14,470,jit+(1-u.stats.util/100)*100));
+            ut.filter(u=>inv(u).flash>0).slice(0,2).forEach((u,i)=>sched(u,'flash',L.flash[i],t+2.5,t+20,400,jit*0.6+(1-u.stats.util/100)*80));
             ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+1,t+16,420,jit*0.5+20));
             ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+3,t+18,380,25));}
           free.forEach((u,i)=>{pathQ(u,PLANTS[plantSite]);u.wait=t+i*0.4;setAct(u,'retaking',t);});
@@ -1937,11 +1960,12 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       else{
         if(!u.auto){u.auto=true;u.pos=posAt(u.sp,u.spEnd);}
         if(u.queue.length&&t>=u.wait){
-          const tg=u.queue[0],d=dist(u.pos,tg),mv=SPEED*STEP;
+          const tg=u.queue[0],d=dist(u.pos,tg),mv=SPEED*STEP*((u.walk||u.jiggling)?0.5:1);
           if(d<=mv){u.pos={x:tg.x,y:tg.y};u.queue.shift();}
           else u.pos={x:u.pos.x+(tg.x-u.pos.x)/d*mv,y:u.pos.y+(tg.y-u.pos.y)/d*mv};
         }
       }
+      { const cx=(u.pos.x/NAV_G)|0, cy=(u.pos.y/NAV_G)|0; if(cx<0||cy<0||cx>=NAV_W||cy>=NAV_H||!navPath[cy*NAV_W+cx])u.pos=snapPt(u.pos); }
       const pp=u.prevPos||u.pos, mdx=u.pos.x-pp.x, mdy=u.pos.y-pp.y; if(u.face==null)u.face=0;
       if(u.jiggling&&u.holdFace!=null)u.face=u.holdFace; else if(Math.hypot(mdx,mdy)>2)u.face=Math.atan2(mdy,mdx); else if(u.holdFace!=null)u.face=u.holdFace;
       if(u.aimAt&&t<u.aimUntil)u.face=Math.atan2(u.aimAt.y-u.pos.y,u.aimAt.x-u.pos.x);
@@ -2507,7 +2531,7 @@ function drawFx(){
       el('circle',{cx:u.x,cy:u.y,r:30+140*a,fill:'#ffffff',opacity:(0.85*(1-a)).toFixed(2)},playFxOver); }
   });
   (simResult.shots||[]).forEach(sh=>{ const a=T-sh.t; // tracers follow the shooter and target as they are drawn now, not where the duel started
-    const PP=simResult.positions, sq=sh.k&&PP[sh.k]?posAt(PP[sh.k],T):null, vq=sh.v&&PP[sh.v]?posAt(PP[sh.v],T):null;
+    const PP=simResult.positions, sq=sh.k&&PP[sh.k]?posAtS(PP[sh.k],T):null, vq=sh.v&&PP[sh.v]?posAtS(PP[sh.v],T):null;
     const x1=sq?sq.x:sh.x1, y1=sq?sq.y:sh.y1, x2=vq?vq.x:sh.x2, y2=vq?vq.y:sh.y2;
     if(a>=0&&a<0.12){ const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
       const ex=x2+nx*sh.mo+(sh.hit?0:dx/L*60), ey=y2+ny*sh.mo+(sh.hit?0:dy/L*60);
@@ -2518,7 +2542,7 @@ function drawFx(){
       tx.textContent='-'+sh.dmg+(sh.hs?' HS':''); } });
   const bl=simResult.bombLog||[]; let b=null; for(const e of bl){ if(e.t<=T)b=e; else break; }
   if(b&&!(simResult.planted&&T>=simResult.plantTime)){
-    let bx,by; if(b.c){ const P=simResult.positions[b.c]; const q=P&&posAt(P,T); if(q){bx=q.x+16;by=q.y-16;} } else {bx=b.x;by=b.y;}
+    let bx,by; if(b.c){ const P=simResult.positions[b.c]; const q=P&&posAtS(P,T); if(q){bx=q.x+16;by=q.y-16;} } else {bx=b.x;by=b.y;}
     if(bx!=null){ el('rect',{x:bx-9,y:by-7,width:18,height:14,rx:3,fill:'#ff5a3c',stroke:'#1a0a05','stroke-width':2},playFxOver); }
   }
 }
@@ -2531,7 +2555,7 @@ function playRenderFrame(){
       try{ nmv=mine?rp()[ix].name:match.opp.players[ix].name; }catch(e){}
       if(playDots[dotKey].nm)playDots[dotKey].nm.textContent=String(nmv||label).slice(0,12); }
     const al=(simResult.acts&&simResult.acts[key])||[]; let actNow=''; for(const e of al){ if(e.t<=playTime)actNow=e.a; else break; }
-    const pos=posAt(simResult.positions[key],playTime);
+    const pos=posAtS(simResult.positions[key],playTime);
     const dead=deadMap[id]!=null&&playTime>=deadMap[id];
     const P=simResult.positions[key]; const smp=P[Math.max(0,Math.min(P.length-1,Math.round(playTime/0.4)))];
     const hl=(simResult.hpLog&&simResult.hpLog[key])||[]; let hp=100; for(const e of hl){ if(e.t<=playTime)hp=e.hp; else break; }
