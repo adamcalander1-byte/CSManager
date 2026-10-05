@@ -373,7 +373,10 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 #tour h3{font:800 28px 'Barlow Condensed',sans-serif;margin:6px 0;color:#f2c14e}#tour p{color:#c2cede;font-size:14px;line-height:1.45;margin:6px 0 14px}
 .wc{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;font:800 24px 'Barlow Condensed',sans-serif}.wc b{font:700 12px 'Chakra Petch',sans-serif;letter-spacing:.14em;color:#9fb0c6}.wc+.odds{margin-top:6px;height:8px}.buyh{display:flex;justify-content:space-between;align-items:center;font:800 18px 'Barlow Condensed',sans-serif;margin:8px 0 4px}.buyh span{font:600 11px 'Chakra Petch',sans-serif;color:#9fb0c6;letter-spacing:.08em}
 .by{display:grid;grid-template-columns:1.15fr 1.05fr .55fr 1.3fr;gap:4px;align-items:center;font-size:12px;padding:5px 0;border-top:1px solid #223046}.by b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.by em{font-style:normal;color:#9fb0c6;font-size:11px}.by .g{letter-spacing:1px;white-space:nowrap}
-.by.hd{border:0;color:#6f8099;font-size:10px;letter-spacing:.1em;padding:0}</style>
+.by.byh{border:0;color:#6f8099;font-size:10px;letter-spacing:.1em;padding:0 0 2px;width:auto;height:auto;display:grid}html{height:auto;min-height:100%}body{height:auto!important;min-height:100%;padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
+#intro,#tour{overflow-y:auto;-webkit-overflow-scrolling:touch}#tour .tc,#intro>*{flex-shrink:0}
+#intro{justify-content:safe center}#tour{align-items:safe center}
+</style>
 </head>
 <body>
 <div id="toast"></div><div id="intro"><div class="ilogo">CS</div><h1>CS MANAGER</h1><div class="itag">Build the squad. Call the rounds. Climb the league.</div><div class="iteam" id="introTeam"></div><button id="introGo">Continue</button></div>
@@ -503,6 +506,7 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
       <div class="infoline" id="calledInfo"></div>
       <div class="controls">
         <button class="playbtn" id="playRoundBtn">▶</button>
+        <button class="playbtn" id="speedBtn" style="font:800 16px 'Barlow Condensed',sans-serif;min-width:48px">×1</button>
         <input type="range" id="playScrub" min="0" max="100" value="0">
         <div class="timelabel" id="playTimeLabel">0:00</div>
       </div>
@@ -1016,7 +1020,7 @@ function grantXP(p,xp,focus){ p.xp=(p.xp||0)+xp; let msg='';
     for(let g=0;g<8&&ovr(p)<=b;g++){ const k=g<2?focus:['aim','pos'][g%2]; p[k]=clamp(p[k]+1,30,99); }
     const o=ovr(p), r=rarityOf(o); p.tier=r[1]; p.rarity=r[2]; p.cost=priceFor(o,p.isPro); msg=' · '+p.name+' improved to '+o+'!'; }
   saveRoster(); return msg; }
-function drillShell(title,sub){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;z-index:95;background:rgba(5,8,12,.96);display:flex;flex-direction:column;align-items:center;padding:16px;color:#fff;gap:10px';
+function drillShell(title,sub){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;z-index:95;background:rgba(5,8,12,.96);display:flex;flex-direction:column;align-items:center;padding:16px;color:#fff;gap:10px;overflow-y:auto;padding-bottom:40px';
   o.innerHTML=`<div style="font:800 24px 'Barlow Condensed',sans-serif">${title}</div><div class="note" id="dSub">${sub}</div><div id="dBody" style="width:100%;max-width:520px"></div>`; document.body.appendChild(o); return o; }
 function drillEnd(o,p,xp,focus,line){ const msg=grantXP(p,xp,focus); roster.trained[p.id]=1; saveRoster();
   o.querySelector('#dBody').innerHTML=`<div class="rcard" style="text-align:center"><div style="font:800 22px 'Barlow Condensed',sans-serif">${line}</div><div style="margin:8px 0">+${xp} XP ${focus.toUpperCase()}${msg}</div><button class="bigbtn" id="dDone">Done</button></div>`;
@@ -1445,15 +1449,21 @@ const STRATS_T=[
   {id:'splitB',name:'Split B (Apps + Mid)',site:'B',speed:'mid',layout:'splitB'},
   {id:'fakeBA',name:'Fake B → hit A',site:'A',speed:'default',layout:'default',fake:true},
   {id:'fakeAB',name:'Fake A → hit B',site:'B',speed:'default',layout:'default',fake:true},
+  {id:'slowA',name:'Slow default → late A',site:'A',speed:'slow',layout:'default'},
+  {id:'slowB',name:'Slow default → late B',site:'B',speed:'slow',layout:'default'},
+  {id:'midB',name:'Mid control → B',site:'B',speed:'mid',layout:'midB'},
+  {id:'palaceA',name:'Palace + Ramp A',site:'A',speed:'mid',layout:'palaceA'},
 ];
 const STRATS_CT=[
-  {id:'std',name:'Standard 2-1-2'},{id:'stackA',name:'Stack A (3-1-1)'},{id:'stackB',name:'Stack B (1-1-3)'},{id:'aggro',name:'Aggressive mid control'},
+  {id:'std',name:'Standard 2-1-2'},{id:'stackA',name:'Stack A (3-1-1)'},{id:'stackB',name:'Stack B (1-1-3)'},{id:'aggro',name:'Aggressive mid control'},{id:'passive',name:'Passive, play the retake'},{id:'midStack',name:'Mid heavy (2-2-1)'},
 ];
 function ctLayout(id){
   const A=SITE_HOLD.A,B=SITE_HOLD.B,C=CONNECTOR;
   if(id==='stackA') return [[A[0],200],[A[1],180],[A[2],180],[C,190],[B[0],200]];
   if(id==='stackB') return [[A[0],200],[C,190],[B[0],200],[B[1],180],[B[2],180]];
   if(id==='aggro')  return [[A[0],200],[CT_INFO[0],220],[CT_INFO[2],260],[CT_INFO[4],220],[B[0],200]];
+  if(id==='passive') return [[A[1],170],[A[2],170],[C,170],[B[1],170],[B[2],170]];
+  if(id==='midStack') return [[A[0],200],[CT_INFO[0],220],[C,190],[CT_INFO[2],220],[B[0],200]];
   return [[A[0],200],[A[1],180],[C,190],[B[0],200],[B[1],170]];
 }
 // the IGL's decision: good IGLs read the opponent, learn what works, and stay unpredictable; bad IGLs guess and repeat themselves
@@ -1474,12 +1484,16 @@ function chooseStrat(side,igl,mem,oppMem,buyType){
       P.std=st.id==='std'?0.4*q:0; P.full=st.id==='aggro'?(buyType==='Full buy'?0.2:-0.6)*q:0;
     }
     P.repeat=(mem.last===st.id&&q<0.55)?(0.55-q)*4:0;
+    const sty=mem.style||(mem.style={aggr:Math.random(),site:null,mid:Math.random(),slow:Math.random(),fake:Math.random(),passive:Math.random()});
+    P.fresh=-0.45*(mem.hist||[]).slice(-3).filter(x=>x===st.id).length*(q>=0.55?1:0.4);
+    P.style=side==='T'?((st.speed==='fast'?(sty.aggr-0.5)*1.4:0)+(st.speed==='slow'?(0.5-sty.aggr)*1.1+(sty.slow-0.5)*0.6:0)+(sty.site&&st.site===sty.site?0.5:0)+(st.fake?(sty.fake-0.5)*1.2:0)+(/mid|split|palace/i.test(st.layout)?(sty.mid-0.5):0))
+      :(st.id==='aggro'?(sty.aggr-0.5)*1.2:st.id==='passive'?(sty.passive-0.4)*1.2:st.id==='midStack'?(sty.mid-0.5):((st.id==='stackA'&&sty.site==='A')||(st.id==='stackB'&&sty.site==='B'))?0.4:0);
     return P;
   });
   const sc=parts.map(P=>Object.values(P).reduce((a,b)=>a+b,0));
-  const temp=0.2+(1-q)*2.2, w=sc.map(v=>Math.exp(v/temp)), tot=w.reduce((a,b)=>a+b,0);
+  const temp=0.35+(1-q)*2.0, w=sc.map(v=>Math.exp(v/temp)), tot=w.reduce((a,b)=>a+b,0);
   let idx=list.length-1, r=Math.random()*tot; for(let i=0;i<list.length;i++){ r-=w[i]; if(r<=0){idx=i;break;} }
-  const st=list[idx], P=parts[idx];
+  const st=list[idx], P=parts[idx]; (mem.hist=mem.hist||[]).push(st.id);
   // the IGL's reasoning, in plain words
   const best=Object.entries(P).filter(([k,v])=>v>0.15).sort((a,b)=>b[1]-a[1])[0];
   const rec=mem.res[st.id]||{w:0,l:0}, other=s=>s==='A'?'B':'A';
@@ -1493,26 +1507,48 @@ function chooseStrat(side,igl,mem,oppMem,buyType){
   else if(best[0]==='std') why='Solid default setup, react to info';
   else if(best[0]==='repeat') why='Same call as last round — no adjustment';
   if(side==='T'&&!best&&mem.tRecent.slice(-2).every(x=>x&&x!==st.site)&&mem.tRecent.length>=2) why=`Mixing it up — last rounds went ${other(st.site)}`;
+  if(!why)why=best&&best[0]==='style'?'Playing to our style this game':'Changing it up from recent rounds';
   return {...st,why,readQ:q};
 }
-function generateBots(mySide,plan){
+
+// ---- Emergent setups: nobody follows a script. Each player picks his own spot from role, aggression, economy and the team's lean ----
+function aggFor(name,role){ return Math.min(1.45,Math.max(0.65,0.7+((String(name)).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(role==='Entry'?0.2:(role==='Lurker'||role==='AWP')?-0.15:0))); }
+function wpick(items,wf){ const w=items.map(wf), tot=w.reduce((a,b)=>a+b,0); let r=Math.random()*tot; for(let i=0;i<items.length;i++){ r-=w[i]; if(r<=0)return items[i]; } return items[items.length-1]; }
+function setupT(plan,info){
+  const lean=(plan&&plan.site)||(Math.random()<0.5?'A':'B'), eco=plan&&plan.speed==='fast', sA=['A Ramp','Palace'], sB=['Apps'], names=['A Ramp','Palace','Mid','Apps'];
+  return [0,1,2,3,4].map(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role);
+    const k=wpick(names,n=>{ let w=1; const onLean=(lean==='A'?sA:sB).includes(n);
+      if(onLean)w*=eco?4:1.9; else if(n!=='Mid')w*=eco?0.25:0.8;
+      if(role==='Lurker'){ w*=n==='Mid'?2.4:onLean?0.35:1.6; } if(role==='AWP'){ w*=n==='Mid'?1.9:n==='Palace'?1.5:n==='Apps'?0.6:1; }
+      if(role==='Entry'&&onLean)w*=1.7; if(role==='Entry'&&n==='Mid')w*=0.6; return w; });
+    const c=CALLOUTS[k], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(k);
+    return snapPt({x:base.x+(Math.random()-0.5)*110,y:base.y+(Math.random()-0.5)*110}); });
+}
+function setupCT(plan,info){
+  const A=SITE_HOLD.A,B=SITE_HOLD.B,id=(plan&&plan.id)||'std';
+  const spots=[{p:A[0],s:'A',f:0,k:0},{p:A[1],s:'A',f:0,k:1},{p:A[2],s:'A',f:0,k:2},{p:B[0],s:'B',f:0,k:0},{p:B[1],s:'B',f:0,k:1},{p:B[2],s:'B',f:0,k:2},
+    {p:CONNECTOR,s:'M',f:1,k:3},{p:CT_INFO[0],s:'M',f:1,k:3},{p:CT_INFO[1],s:'A',f:1,k:3},{p:CT_INFO[2],s:'M',f:1.3,k:3},{p:CT_INFO[3],s:'B',f:1,k:3},{p:CT_INFO[4],s:'B',f:1.3,k:3}];
+  const used=new Set(), out=[];
+  [0,1,2,3,4].forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0);
+    const sp=wpick(spots.filter(x=>!used.has(x)),x=>{ let w=1; w*=x.f?Math.pow(Math.max(0.5,ag),2):Math.max(0.35,2.1-ag);
+      if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2;
+      if(id==='stackA'&&x.s==='A')w*=2.5; if(id==='stackB'&&x.s==='B')w*=2.5; if(id==='midStack'&&x.s==='M')w*=2.5; return w; });
+    used.add(sp); out.push({p:sp.p,r:170+ag*25,s:sp.s,f:sp.f}); });
+  ['A','B'].forEach(s=>{ if(!out.some(o=>o.s===s)){ const j=out.findIndex(o=>o.s==='M')>=0?out.findIndex(o=>o.s==='M'):out.findIndex(o=>o.s!==s&&out.filter(z=>z.s===o.s).length>1); if(j>=0)out[j]={p:SITE_HOLD[s][0],r:200,s,f:0}; } });
+  return out;
+}
+function generateBots(mySide,plan,info){
   const bots={}, stats={};
   const ids=mySide==='T'?['C1','C2','C3','C4','C5']:['T1','T2','T3','T4','T5'];
   ids.forEach(id=>{stats[id]=genBotStats();});
   const igl=Math.round(ids.reduce((a,id)=>a+stats[id].igl,0)/5);
+  info=info||{}; info.roles=info.roles||ids.map(id=>stats[id].role); info.names=info.names||ids.map(id=>stats[id].name);
   if(mySide==='T'){
-    plan=plan||STRATS_CT[0]; const L=ctLayout(plan.id);
-    ids.forEach((id,i)=>{const [tgt,r]=L[i]; bots[id]={x:CTSPAWN.x,y:CTSPAWN.y,team:'ct',path:routeToPath(CTSPAWN,tgt,'kill',r)};});
+    plan=plan||STRATS_CT[0]; const sp=setupCT(plan,info);
+    ids.forEach((id,i)=>{ bots[id]={x:CTSPAWN.x,y:CTSPAWN.y,team:'ct',path:routeToPath(CTSPAWN,sp[i].p,'kill',sp[i].r)}; });
   } else {
-    plan=plan||STRATS_T[0];
-    ids.forEach((id,i)=>{
-      const start=T_SPREAD[i]; let tgt,r=240;
-      const LANES={allA:['A Ramp','Palace','A Ramp','Palace','A Ramp'], allB:['Apps','Apps','Apps','Apps','Apps'],
-        splitA:['Palace','Palace','A Ramp','Mid','Mid'], splitB:['Apps','Apps','Apps','Mid','Mid'],
-        default:['A Ramp','Palace','Mid','Apps','Apps']};
-      tgt=waitSpot((LANES[plan.layout]||LANES.default)[i]); // wait here, then the IGL's execute call sends everyone to the site along the real route
-      bots[id]={x:start.x,y:start.y,team:'t',path:routeToPath(start,tgt,'hold',r)};
-    });
+    plan=plan||STRATS_T[0]; const posts=setupT(plan,info);
+    ids.forEach((id,i)=>{ const start=T_SPREAD[i]; bots[id]={x:start.x,y:start.y,team:'t',path:routeToPath(start,posts[i],'hold',240)}; });
   }
   return {bots,stats,igl};
 }
@@ -1520,6 +1556,7 @@ function generateBots(mySide,plan){
 function myStatsFor(id){ return rp()[parseInt(id.slice(1),10)-1]; }
 
 // Real utility lineups per site: smoke / flash landing spots (map coords). Edit these to move a lineup.
+let SPOTMEM={}; // per player: where he died in earlier rounds of this match
 const LINEUPS={
   A:{smoke:[{n:'CT',x:545,y:965},{n:'Jungle',x:640,y:850},{n:'Stairs',x:760,y:890}], flash:[{n:'site pop',x:700,y:990},{n:'Jungle pop',x:640,y:880}], molly:[{n:'Default',x:705,y:1050},{n:'Jungle',x:650,y:905}]},
   B:{smoke:[{n:'Market',x:215,y:420},{n:'Bench',x:400,y:330},{n:'Window',x:330,y:200}], flash:[{n:'site pop',x:226,y:262},{n:'Bench pop',x:380,y:300}], molly:[{n:'Default',x:235,y:255},{n:'Bench',x:375,y:315}]}
@@ -1548,7 +1585,13 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   };
   const rangeOf=s=>s.cmd==='save'?140:s.cmd==='kill'?Math.max(300,s.radius||KILL_R):s.cmd==='hold'?330:270;
   const teamOf=(side)=>all.filter(u=>u.alive&&u.side===side);
-  const intel={me:[],bot:[]}; const addSight=(side,pos,t,w)=>intel[side].push({t,pos:{x:pos.x,y:pos.y},w:w==null?1:w});
+  const intel={me:[],bot:[]}; const calledAt={};
+  const commD=side=>0.5+(1-Math.min(1,((side==='me'?iglMe:iglBot)||50)/100))*1.7+Math.random()*0.5; // better IGL = faster, cleaner comms
+  const addSight=(side,pos,t,w,by)=>{ w=w==null?1:w; intel[side].push({t,pos:{x:pos.x,y:pos.y},w,by,shareT:by?t+commD(side):t});
+    if(by&&w>=1&&!(calledAt[side]>t-5)){ const u=all.find(z=>z.key===by); if(u&&u.alive){ calledAt[side]=t;
+      const nm=Object.entries(CALLOUTS).sort((a,b)=>Math.hypot(a[1].x-pos.x,a[1].y-pos.y)-Math.hypot(b[1].x-pos.x,b[1].y-pos.y))[0][0];
+      events.push({t,x:pos.x,y:pos.y,side,note:true,text:nameOf(u)+' calls: enemy '+nm}); } } };
+  const know=(u,t)=>intel[u.side].filter(z=>z.by===u.key||t>=z.shareT);
   const engaged=new Set(), lastSight={}, events=[], deaths=[], killLog=[], acts={}, calls={me:[],bot:[]};
   const setAct=(u,a,t)=>{ if(u.act===a)return; u.act=a; (acts[u.key]=acts[u.key]||[]).push({t,a}); };
   const util=[], smokes=[], bombLog=[], shots=[], hpLog={}, dmgDealt={}, dmgBy={}, reengage=[]; let curT=0, carrier=null, bombDrop=null, lastBombFetch=-99;
@@ -1559,7 +1602,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   function throwFlash(u,pt,t){ pt=snapPt(pt); util.push({t,type:'flash',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
     const dur=1.2+1.6*(u.stats.util/100);
     foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<170&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
-  const inv=u=>u.inv||(u.inv=(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
+  const inv=u=>u.inv||(u.inv=u.stats.grenades?{smoke:0,flash:0,molly:0,he:0,...u.stats.grenades}:(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
+  const aggOf=u=>u._agg||(u._agg=Math.min(1.45,Math.max(0.65,0.7+((String(nameOf(u))).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(u.stats.role==='Entry'?0.2:(u.stats.role==='Lurker'||u.stats.role==='AWP')?-0.15:0))));
   all.forEach(u=>{ u.inv0={...inv(u)}; });
   const fires=[]; let pmDone=false;
   const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
@@ -1577,7 +1621,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   // Timing depends on the thrower's util stat: a high-util player waits for the right moment (teammate about to enter), a low-util player throws early, late, or wastes it.
   const sched=(u,kind,spot,after,maxT,rng,jit)=>{ if(!u||inv(u)[kind]<=0)return false; inv(u)[kind]--; const ts=u.stats.util/100, now=spot.n==='bomb';
     if(Math.random()<(1-ts)*0.25)return true; // forgot it / wasted it
-    const ideal={smoke:520,flash:130,molly:330,he:200}[kind], th=Math.max(40,ideal+(Math.random()*2-1)*(1-ts)*(kind==='smoke'?350:220));
+    const ideal={smoke:520,flash:170,molly:380,he:290}[kind], th=Math.max(40,ideal+(Math.random()*2-1)*(1-ts)*(kind==='smoke'?350:220));
     utilQ.push({u,kind,spot,after:after+(now?(1-ts)*3.5:0),maxT:maxT+(now?4:0),rng,jit,th,now}); return true; };
   const leadD=w=>{ let m=1e9; for(const z of all){ if(!z.alive||z.side!==w.u.side||z===w.u)continue; m=Math.min(m,dist(z.pos,w.spot)); } return m===1e9?0:m; };
   function runUtil(t){ for(let i=utilQ.length-1;i>=0;i--){ const w=utilQ[i]; if(!w.u.alive){utilQ.splice(i,1);continue;} if(t<w.after)continue;
@@ -1618,7 +1662,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     if(trader===a){eA*=1.25;nA_.push('trade');} if(trader===b){eB*=1.25;nB_.push('trade');}
     eA*=(0.9+Math.random()*0.2); eB*=(0.9+Math.random()*0.2);
     const mkS=(u,e,st)=>{ const W=WSTAT[u.stats.weapon]||WSTAT['AK-47'], holding=st.cmd!=='move';
-      const react=0.2+(1-u.stats.aim/100)*0.3-(teamOf(u.side).length===1?(u.stats.clutch-60)*0.0015:0)+Math.random()*0.12-(holding?0.07:0)+(u.blindUntil>t?0.9:0)+(u.cool>t?0.25:0)-(trader===u?0.06:0);
+      const react=0.2+(1-u.stats.aim/100)*0.3-(teamOf(u.side).length===1?(u.stats.clutch-60)*0.0015:0)-(u.hearAt&&curT-u.hearAt.t<4?0.09:0)+Math.random()*0.12-(holding?0.07:0)+(u.blindUntil>t?0.9:0)+(u.cool>t?0.25:0)-(trader===u?0.06:0);
       return {u,e,W,holding,next:Math.max(0.05,react),n:0}; };
     const A=mkS(a,eA,sa), B=mkS(b,eB,sb); A.opp=B; B.opp=A;
     const MAXD=2.4; let killer=null, victim=null, kShot=null;
@@ -1644,12 +1688,12 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         (hpLog[T.u.key]=hpLog[T.u.key]||[]).push({t:tt,hp:Math.max(0,T.u.hp)});
       }
       const mo=hit?0:(Math.random()<0.5?-1:1)*(16+Math.random()*30);
-      shots.push({t:tt,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
+      shots.push({t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
       S.n++; S.next+=spray?W.cyc:W.tap;
       if(T.u.hp<=0){ killer=S.u; victim=T.u; kShot={t:tt,hs,w:S.u.stats.weapon}; break; }
     }
     a.aimAt={x:b.pos.x,y:b.pos.y}; a.aimUntil=t+MAXD; b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+MAXD;
-    addSight(a.side,b.pos,t); addSight(b.side,a.pos,t);
+    addSight(a.side,b.pos,t,1,a.key); addSight(b.side,a.pos,t,1,b.key);
     if(!killer){
       const hurt=a.hp<=b.hp?a:b, oth=hurt===a?b:a, dx=hurt.pos.x-oth.pos.x, dy=hurt.pos.y-oth.pos.y, L=Math.hypot(dx,dy)||1;
       if(hurt.hp<70){ pathQ(hurt,{x:hurt.pos.x+dx/L*90,y:hurt.pos.y+dy/L*90}); hurt.broke=true; hurt.auto=true; hurt.wait=0; }
@@ -1675,7 +1719,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       let d2=W2.dmg*(hs2?4:1)*0.75; if(behind.armor&&(!hs2||behind.helmet))d2*=W2.pen; d2=Math.round(d2);
       const real=Math.min(behind.hp,d2); behind.hp-=d2; dmgDealt[w.key]=(dmgDealt[w.key]||0)+real;
       (hpLog[behind.key]=hpLog[behind.key]||[]).push({t:tk,hp:Math.max(0,behind.hp)});
-      shots.push({t:tk,x1:l.pos.x,y1:l.pos.y,x2:behind.pos.x,y2:behind.pos.y,mo:0,hit:true,hs:hs2,dmg:d2,v:behind.key});
+      shots.push({t:tk,k:w.key,x1:l.pos.x,y1:l.pos.y,x2:behind.pos.x,y2:behind.pos.y,mo:0,hit:true,hs:hs2,dmg:d2,v:behind.key});
       if(behind.hp<=0){
         behind.alive=false; behind.deathT=tk; behind.queue=[]; deaths.push({t:tk,side:behind.side,pos:{...behind.pos}});
         killLog.push({t:tk,k:w.key,v:behind.key,a:null,w:wpn,hs:hs2,coll:true,kx:w.pos.x,ky:w.pos.y,vx:behind.pos.x,vy:behind.pos.y});
@@ -1719,13 +1763,16 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const idle=(t>u.spEnd||u.broke)&&(!u.queue.length||u.jiggling);
     if(t<=u.spEnd&&!u.broke) setAct(u,u.side==='me'?'following the call':(isAtt?'default':'setting up'),t);
     // aggressive CT info peek early in the round, then fall back
-    if(!isAtt&&!planted&&idle&&t<35&&!u.infoDone&&u.stats.aim>=74&&t>6&&Math.random()<0.012){
+    if(!isAtt&&!planted&&idle&&t<35&&!u.infoDone&&u.stats.aim>=74&&t>6&&Math.random()<0.012*aggOf(u)){
       u.infoDone=true; const back={x:u.pos.x,y:u.pos.y};
       const spot=CT_INFO.slice().sort((a,b)=>dist(a,u.pos)-dist(b,u.pos))[0];
       pathQ(u,spot); u.returnT=t+7; u.back=back; setAct(u,'info peek',t);
       events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' takes an aggressive info peek'}); return;
     }
     if(u.back&&t>=u.returnT&&!u.queue.length){ pathQ(u,u.back); u.back=null; setAct(u,'falling back',t); return; }
+    if(idle&&!u.adjusted&&t>8){ const mm=(SPOTMEM[u.key]||[]).find(d=>d.att===isAtt&&dist(d,u.pos)<150);
+      if(mm){ u.adjusted=true; if(Math.random()<0.3+sense*0.6){ const dx=u.pos.x-mm.x, dy=u.pos.y-mm.y, L=Math.hypot(dx,dy)||1, sg=Math.random()<0.5?1:-1;
+        breakOff(u,t,'changes his angle — died here earlier',snapPt({x:u.pos.x-dy/L*150*sg,y:u.pos.y+dx/L*150*sg}),'changing angle'); return; } } }
     // small repositioning around the held angle so nobody freezes
     if(idle&&!u.saving&&t>=u.jig){
       if(!u.home){u.home={x:u.pos.x,y:u.pos.y}; u.holdFace=holdDir(u);}
@@ -1743,16 +1790,28 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       const closest=mates.filter(z=>!z.saving).sort((a,b)=>dist(a.pos,rec.pos)-dist(b.pos,rec.pos))[0];
       if(closest===u){ rec.handled=true; if(Math.random()<0.25+sense*0.6){ breakOff(u,t,'drops the call to trade his teammate',rec.pos,'trading'); return; } }
     }
+    // 2b) after a kill, good players swap off the angle (bad ones re-peek the same spot and get punished)
+    const kk=killLog.filter(k=>k.k===u.key&&t-k.t<3&&!k.rel)[0];
+    if(kk){ kk.rel=true; if(Math.random()<0.15+sense*0.75){ const dx=u.pos.x-kk.vx, dy=u.pos.y-kk.vy, L=Math.hypot(dx,dy)||1, sg=Math.random()<0.5?1:-1;
+      breakOff(u,t,'swaps position after the kill',snapPt({x:u.pos.x-dy/L*110*sg+dx/L*40,y:u.pos.y+dx/L*110*sg+dy/L*40}),'repositioning'); return; } }
+    // 2c) risk read: seeing a group while alone -> regroup with a teammate instead of walking in (worse game sense = worse read)
+    if(!u.regroupT||t>u.regroupT){ const seen=new Set(know(u,t).filter(z=>t-z.t<6&&z.w>=0.9&&dist(z.pos,u.pos)<430).map(z=>Math.round(z.pos.x/70)+','+Math.round(z.pos.y/70))).size;
+      const sup=mates.filter(z=>z!==u&&dist(z.pos,u.pos)<340).length, perceived=seen+(Math.random()-0.5)*(1-sense)*2.2;
+      if(perceived>sup+1.2&&u!==carrier&&mates.length>1&&Math.random()<0.25+sense*0.55){ const mt=mates.filter(z=>z!==u).sort((a,b)=>dist(a.pos,u.pos)-dist(b.pos,u.pos))[0]; u.regroupT=t+8;
+        breakOff(u,t,'sees a group ahead and regroups with '+nameOf(mt),{x:mt.pos.x,y:mt.pos.y},'regrouping'); return; } }
+    // 2d) last one alive on the attack: strong clutch players play the clock, weak ones just run in
+    if(mates.length===1&&isAtt&&!planted&&foes.length>=1&&!u.lastCall){ u.lastCall=true;
+      if(u.stats.clutch>=60&&t<ROUND_LEN-40){ breakOff(u,t,'is the last one alive and plays the clock',null,'playing the clock'); u.wait=t+7+Math.random()*10; return; } }
     if(u.broke) return;
     // 3) info says several enemies ahead and I'm alone -> hold and wait for support
     if(t<=u.spEnd){
       const ahead=posAt(u.sp,Math.min(u.spEnd,t+4));
-      const known=new Set(intel[u.side].filter(s=>t-s.t<6&&dist(s.pos,ahead)<320).map(s=>Math.round(s.pos.x/60)+','+Math.round(s.pos.y/60))).size;
+      const known=new Set(know(u,t).filter(s=>t-s.t<6&&dist(s.pos,ahead)<320).map(s=>Math.round(s.pos.x/60)+','+Math.round(s.pos.y/60))).size;
       const near=mates.filter(z=>z!==u&&dist(z.pos,u.pos)<380).length;
       if(known>=1&&near<known&&Math.random()<sense*0.6){ breakOff(u,t,'hears '+(known>1?known+' enemies':'an enemy')+' ahead — holds and waits for his team',null,'waiting for team'); u.wait=t+4; return; }
     }
     // 4) numbers advantage and good read -> push the advantage early
-    const ex=state[u.side].execT; if(isAtt&&!planted&&u!==carrier&&ex!=null&&t>ex*0.6&&mates.length-foes.length>=2&&Math.random()<sense*0.12){ breakOff(u,t,'reads the man-advantage and pushes early',null,'pushing'); return; }
+    const ex=state[u.side].execT; if(isAtt&&!planted&&u!==carrier&&ex!=null&&t>ex*0.6&&mates.length-foes.length>=2&&Math.random()<sense*0.12*aggOf(u)){ breakOff(u,t,'reads the man-advantage and pushes early',null,'pushing'); return; }
     // 5) lurker off the call: good lurkers pick their own timing
     if(u.stats.role==='Lurker'&&isAtt&&state[u.side].committed&&t<ROUND_LEN-40&&Math.random()<sense*0.08){ // lurk timed to the execute
       const far=state[u.side].site==='A'?'B':'A';
@@ -1764,7 +1823,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       const moved=a.lastP?dist(a.pos,a.lastP):0; a.lastP={x:a.pos.x,y:a.pos.y};
       if(moved<25||a.saving)continue;
       for(const b of all){ if(!b.alive||b.side===a.side)continue;
-        if(dist(a.pos,b.pos)<480&&!losClear(a.pos,b.pos)&&Math.random()<0.45) addSight(b.side,a.pos,t,0.4); }
+        if(dist(a.pos,b.pos)<480&&!losClear(a.pos,b.pos)&&Math.random()<0.45){ addSight(b.side,a.pos,t,0.4,b.key); b.hearAt={pos:{x:a.pos.x,y:a.pos.y},t};
+        if(!b.queue.length||b.jiggling){ b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+2; }
+        else if(!state[b.side].committed&&b.auto&&(b.listenT||-9)<t-5&&dist(a.pos,b.pos)<380&&Math.random()<0.15+Math.min(1,(b.stats.pos*0.75+(b.stats.igl||50)*0.25)/100)*0.5){ b.listenT=t; b.wait=t+1.1; setAct(b,'stops to listen',t); } } }
     }
   }
 
@@ -1772,9 +1833,22 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const team=teamOf(side); if(!team.length)return;
     const free=team.filter(u=>u.auto&&(!u.queue.length||u.jiggling)&&t>=u.wait&&!u.saving);
     const q=Math.min(1,Math.max(0.15,igl[side]/100)), isAtt=side===attSide, st=state[side];
-    const sight=intel[side].filter(s=>t-s.t<=10);
+    const sight=intel[side].filter(s=>t-s.t<=10&&t>=s.shareT);
     const score=s=>sight.reduce((a,z)=>a+z.w*Math.exp(-dist(z.pos,PLANTS[s])/350),0);
     const say=(x,y,text)=>{events.push({t,x,y,side,text:teamName(side)+' — '+text}); calls[side].push({t,text});};
+    const oppSide=side==='me'?'bot':'me', foesA=teamOf(oppSide);
+    // belief: where the enemies we have NOT killed were last seen (kept ~30s, dropped when they are known dead or the spot was checked empty)
+    const belief=()=>{ const out=[]; for(const z of intel[side].slice().reverse()){ if(z.w<0.9||t<z.shareT||t-z.t>30||z.dead)continue;
+      if(deaths.some(d=>d.side===oppSide&&d.t>=z.t-0.5&&dist(d.pos,z.pos)<170)){ z.dead=true; continue; }
+      if(t-z.t>3&&team.some(u=>dist(u.pos,z.pos)<220&&losClear(u.pos,z.pos))){ z.dead=true; continue; }
+      if(out.every(o=>dist(o.pos,z.pos)>160))out.push(z); if(out.length>=foesA.length)break; } return out; };
+    if(foesA.length&&foesA.length<=2&&team.length>=foesA.length+2){ const bl=belief();
+      if(!st.cleanup){ st.cleanup=true; say(team[0].pos.x,team[0].pos.y,team.length+'v'+foesA.length+' — '+(bl.length?'we know where one is, play it together':'stay tight and listen for them')); }
+      if(isAtt&&!planted){ if(!st.committed&&bl.length){ const nb=bl[0]; st.site=dist(nb.pos,PLANTS.A)<dist(nb.pos,PLANTS.B)?'B':'A'; } if(st.execT!=null)st.execT=Math.min(st.execT,t); }
+      else if(!isAtt&&!planted){ const hunt=bl.find(b=>t-b.t<20), pair=hunt?free.slice().sort((a,b)=>dist(a.pos,hunt.pos)-dist(b.pos,hunt.pos)).slice(0,2):[];
+        free.forEach((u,i)=>{ if(t-(u.cleanT||-99)<8)return; u.cleanT=t;
+          if(pair.length===2&&pair.includes(u)){ const first=pair[0]===u; pathQ(u,{x:hunt.pos.x+(first?-60:60),y:hunt.pos.y}); u.wait=t+(first?0:0.8); setAct(u,'clears the last spot together',t); }
+          else { const sn=(i%2)?'A':'B'; pathQ(u,SITE_HOLD[sn][Math.floor(i/2)%4]); setAct(u,'holds '+sn+' tight',t); } }); } }
     if(isAtt){
       if(!planted){
         if(!st.site&&plans[side]&&plans[side].site)st.site=plans[side].site;
@@ -1784,13 +1858,13 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         if(!st.switched&&q>0.45&&team.length<=3&&score(st.site)>1.3&&score(other)<0.4&&t>25){
           st.site=other;st.switched=true;st.committed=false;say(PLANTS[other].x,PLANTS[other].y,'IGL calls a switch to '+other);}
         const need=Math.min(4,team.length);
-        if(st.execT==null){ const pl=plans[side]||{}; st.execT=pl.speed==='fast'?ROUND_LEN*(0.1+Math.random()*0.05):pl.speed==='mid'?ROUND_LEN*(0.22+Math.random()*0.12):ROUND_LEN*(0.25+Math.random()*0.3)*(0.8+q*0.4); say(0,0,(pl.name||'Default')+' — go around '+formatMMSS(ROUND_LEN-st.execT));}
+        if(st.execT==null){ const pl=plans[side]||{}; st.execT=pl.speed==='fast'?ROUND_LEN*(0.1+Math.random()*0.05):pl.speed==='slow'?ROUND_LEN*(0.5+Math.random()*0.16):pl.speed==='mid'?ROUND_LEN*(0.22+Math.random()*0.12):ROUND_LEN*(0.25+Math.random()*0.3)*(0.8+q*0.4); say(0,0,(pl.name||'Default')+' — go around '+formatMMSS(ROUND_LEN-st.execT));}
         if(!st.committed&&t<st.execT){
           // map control: rotate between control points, gather info
           free.forEach(u=>{ if(t>=u.nextCtrl){ u.nextCtrl=t+10+Math.random()*10;
             if(u===carrier){ setAct(u,'holding bomb',t); return; } // bomb carrier stays with his group
             // real players hold their post; only an occasional small shuffle, never deeper than where they stand
-            if(Math.random()<0.2+(1-q)*0.2){ const opts=T_CTRL.filter(c=>dist(c,TSPAWN)<=dist(u.pos,TSPAWN)+60).sort((a,b)=>dist(a,u.pos)-dist(b,u.pos)).slice(0,2);
+            if(Math.random()<(0.2+(1-q)*0.2)*aggOf(u)){ const opts=T_CTRL.filter(c=>dist(c,TSPAWN)<=dist(u.pos,TSPAWN)+60).sort((a,b)=>dist(a,u.pos)-dist(b,u.pos)).slice(0,2);
               if(opts.length){ pathQ(u,opts[Math.floor(Math.random()*opts.length)]); setAct(u,'repositioning',t);} } else setAct(u,'holding post',t);} });
           // good IGLs fake the other site shortly before the execute
           const other2=st.site==='A'?'B':'A';
@@ -1807,7 +1881,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
             ut.forEach(u=>{ if(!sm.length||usedS.has(u)||u===carrier)return; if(sched(u,'smoke',sm[0],t+0.5,t+16,470,jit+(1-u.stats.util/100)*40)){usedS.add(u);sm.shift();} });
             ut.forEach(u=>{ if(!fs.length||usedF.has(u))return; if(sched(u,'flash',fs[0],t+3,t+22,400,jit*0.6+(1-u.stats.util/100)*30)){usedF.add(u);fs.shift();} });
             ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+4,t+22,420,jit*0.5+20));
-            ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+6,t+24,380,25)); }
+            ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+6,t+24,430,25)); }
           free.sort((a,b)=>b.stats.aim-a.stats.aim).forEach((u,i)=>{pathQ(u,SITE_HOLD[st.site][i%4]);u.wait=t+1.6+(u===carrier?2.4:0)+i*(0.25+(1-q)*1.6);setAct(u,'executing '+st.site,t);});
         }
         if(st.committed&&carrier&&carrier.alive&&carrier.side===side&&!carrier.queue.length&&dist(carrier.pos,PLANTS[st.site])>60){ pathQ(carrier,PLANTS[st.site]); }
@@ -1837,7 +1911,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       } else {
         const sa=score('A'),sb=score('B'),mx=Math.max(sa,sb);
         if(mx>0.85&&t-st.lastRot>8){
-          const seen=z=>intel[side].some(i=>i.w>=1&&t-i.t<=6&&dist(i.pos,PLANTS[z])<420);
+          const seen=z=>intel[side].some(i=>i.w>=1&&t>=i.shareT&&t-i.t<=6&&dist(i.pos,PLANTS[z])<420);
           let threat=sa>=sb?'A':'B'; const vA=seen('A'),vB=seen('B');
           if(vA!==vB&&(q>=0.4||Math.random()<0.75)) threat=vA?'A':'B'; // only a very poor IGL ignores what his team actually saw
           const other=threat==='A'?'B':'A', P=PLANTS[threat];
@@ -1848,7 +1922,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
           let send=Math.max(0,Math.min(want-atSite,team.length-atSite-keep));
           const cand=free.filter(u=>dist(u.pos,P)>=380).sort((a,b)=>dist(a.pos,P)-dist(b.pos,P)).slice(0,send);
           if(cand.length){st.lastRot=t;say(P.x,P.y,'IGL rotates '+cand.length+' to '+threat);
-            cand.forEach((u,i)=>{pathQ(u,SITE_HOLD[threat][i%4]);u.wait=t+0.8+(100-u.stats.pos)/60;setAct(u,'rotating '+threat,t);});}
+            cand.forEach((u,i)=>{ if(Math.random()>0.6+Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100)*0.4){ setAct(u,'missed the call',t); events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' missed the rotate call'}); return; } pathQ(u,SITE_HOLD[threat][i%4]);u.wait=t+0.8+(100-u.stats.pos)/60;setAct(u,'rotating '+threat,t);});}
         }
       }
     }
@@ -1887,7 +1961,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         if(d<rng){
           engaged.add(key);
           const r=resolve(m,b,t,null); if(r.w)tradeChain(r.w,r.l,t);
-        } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t);addSight('bot',m.pos,t);}
+        } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t,1,m.key);addSight('bot',m.pos,t,1,b.key);}
       }
     }
     if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);fireTick(t);hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
@@ -1929,7 +2003,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   endT=Math.max(endT,...killLog.map(k=>k.t),...shots.map(x=>x.t))+1.2;
   const myDead={},botDead={};
   all.forEach(u=>{if(u.deathT!=null)(u.side==='me'?myDead:botDead)[u.id]=u.deathT;});
-  return {loadout:Object.fromEntries(all.map(u=>[u.key,{w:u.stats.weapon,a:u.armor,h:u.helmet,g:u.inv0}])),positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
+  return {loadout:Object.fromEntries(all.map(u=>[u.key,{w:u.stats.weapon,a:u.armor,h:u.helmet,g:u.inv0,k:u.stats.kit}])),positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
 }
 
 function makePlayDot(id,team,small){
@@ -2087,6 +2161,32 @@ function simOtherMatches(excludeIdx){
 function recordTable(name,rf,ra){ const r=roster.league.table[name]; r.p++; r.rd+=rf-ra; if(rf>ra){r.w++;r.pts+=3;}else r.l++; }
 
 // ---------- economy ----------
+
+// ---- CS2-style economy: real prices, every player buys with his own money and keeps what he doesn't spend ----
+const PX={smoke:300,flash:200,he:300,'P250':300,'Desert Eagle':700,'MAC-10':1050,'MP9':1250,'Galil AR':1800,'FAMAS':1950,'SSG 08':1700,'AK-47':2700,'M4A4':3100,'M4A1-S':2900,'AWP':4750};
+const PRIMARY=['AK-47','M4A4','M4A1-S','AWP','Galil AR','FAMAS','SSG 08','MAC-10','MP9'];
+const gearOf=(w,a)=>Math.min(1,(({'AK-47':1,'M4A4':1,'M4A1-S':1,'AWP':1,'Galil AR':0.9,'FAMAS':0.9,'SSG 08':0.88,'MAC-10':0.84,'MP9':0.84,'Desert Eagle':0.8,'P250':0.74})[w]??0.62)+(a?0.08:0));
+function shop(role,side,money,type,kw,ka){
+  const T=side==='T', R=Math.random, pick=a=>a[Math.floor(R()*a.length)];
+  const o={w:T?'Glock-18':'USP-S',a:0,h:0,g:{smoke:0,flash:0,molly:0,he:0},kit:0,cost:0}; let m=money;
+  const buy=c=>{ if(m>=c){ m-=c; o.cost+=c; return true; } return false; };
+  const keep=kw&&PRIMARY.includes(kw); if(keep)o.w=kw; if(ka&&ka.a){ o.a=1; o.h=ka.h?1:0; }
+  const armor=()=>{ if(o.a)return; if(m>=1000&&buy(1000)){ o.a=1; o.h=1; } else if(buy(650)){ o.a=1; } };
+  const util=list=>{ for(const k of list){ if(k==='kit'){ if(!T&&!o.kit&&buy(400))o.kit=1; continue; }
+    const c=k==='molly'?(T?400:500):PX[k], mx=k==='flash'?2:1, tot=o.g.smoke+o.g.flash+o.g.molly+o.g.he; if(tot<4&&o.g[k]<mx&&buy(c))o.g[k]++; } };
+  if(type==='Pistol'){ const sup=role==='Support', r=R();
+    if(r<(sup?0.2:0.5)) armor();                                        // vest only
+    else if(r<0.85){ if(buy(300))o.w='P250'; util(sup?['smoke','flash']:['flash','flash']); }  // P250 + utility
+    else { util(['flash','smoke']); if(!T)util(['kit']); } }
+  else if(type==='Eco'){ if(R()<0.12)util(['flash']); }                // save everything
+  else { const full=type==='Full buy';
+    if(!keep){ const rifle=T?'AK-47':pick(['M4A4','M4A1-S']);
+      if(role==='AWP'&&m>=(full?5400:5400)){ buy(4750); o.w='AWP'; }
+      else if(full&&m>=PX[rifle]+650){ buy(PX[rifle]); o.w=rifle; }
+      else { const opts=(T?['Galil AR','MAC-10','Desert Eagle']:['FAMAS','MP9','Desert Eagle']).filter(w=>m>=PX[w]+(full?650:0)); const w=opts.length?(full?opts[0]:pick(opts)):'P250'; if(buy(PX[w]))o.w=w; } }
+    armor(); util(full?(role==='Support'?['kit','smoke','flash','flash','molly','he']:R()<0.4?['kit','flash','he','smoke','molly','flash']:['kit','flash','smoke','molly','flash','he']):['flash','smoke','kit']); }
+  return o;
+}
 function newEco(){ return {money:[800,800,800,800,800],streak:0,kept:[0,0,0,0,0]}; }
 function decideBuy(eco,roundInHalf,isPistol,iglSkill){
   if(isPistol) return {type:'Pistol',gear:0.72,spend:[800,800,800,800,800]};
@@ -2099,10 +2199,10 @@ function decideBuy(eco,roundInHalf,isPistol,iglSkill){
 }
 function applyIncome(eco,won,kills,plantBonus){
   for(let i=0;i<5;i++){
-    eco.money[i]+= (won?3250:1400+500*Math.min(eco.streak,4)) + 300*(kills[i]||0) + (plantBonus?800:0);
+    eco.money[i]+= (won?3250:1400+500*Math.min(eco.streak,4)) + 300*(kills[i]||0) + (plantBonus?300:0);
     eco.money[i]=Math.min(16000,Math.max(0,eco.money[i]));
   }
-  eco.streak= won?0:eco.streak+1;
+  eco.streak= won?Math.max(0,eco.streak-1):eco.streak+1; // a win only lowers the loss bonus one step, like CS2
 }
 
 // ---------- match ----------
@@ -2115,7 +2215,7 @@ function initMatchState(){
   m.ecoMe=newEco(); m.ecoBot=newEco();
   m.stats={}; for(let i=0;i<5;i++){ m.stats['m'+i]={k:0,d:0,a:0,dmg:0}; m.stats['b'+i]={k:0,d:0,a:0,dmg:0}; }
   m.tacRec={}; m.phase='hub';
-  const nm=()=>({res:{},tRecent:[],ctRecent:[],last:null}); m.mem={me:nm(),bot:nm()};
+  const nm=()=>({res:{},tRecent:[],ctRecent:[],last:null,hist:[],style:{aggr:Math.random(),site:Math.random()<0.55?(Math.random()<0.5?'A':'B'):null,mid:Math.random(),slow:Math.random(),fake:Math.random(),passive:Math.random()}}); m.mem={me:nm(),bot:nm()}; SPOTMEM={};
 }
 function currentSide(){ const m=match; const r=m.round; // r = rounds already played
   let swapped;
@@ -2128,14 +2228,14 @@ function prepareRound(){
   if(m.round===24||(m.round>24&&(m.round-24)%3===0)){ m.ecoMe.money=[10000,10000,10000,10000,10000]; m.ecoBot.money=[10000,10000,10000,10000,10000]; }
   const myIGL=rp()[roster.iglIndex].igl, botIGL=Math.max(...m.opp.players.map(p=>p.igl));
   const rih=m.round<24?m.round%12:(m.round-24)%3;
-  const buyMe=decideBuy(m.ecoMe,rih,isPistolRound(),myIGL), buyBot=decideBuy(m.ecoBot,rih,isPistolRound(),botIGL);
+  const buyMe=decideBuy(m.ecoMe,rih,isPistolRound(),myIGL), buyBot=decideBuy(m.ecoBot,rih,isPistolRound(),botIGL); buyMe.left=[0,0,0,0,0]; buyBot.left=[0,0,0,0,0];
   // both IGLs make their call for this round
   const planMe=chooseStrat(side,myIGL,m.mem.me,m.mem.bot,buyMe.type), planBot=chooseStrat(oppSide,botIGL,m.mem.bot,m.mem.me,buyBot.type);
-  const myP=generateBots(oppSide,planMe).bots, calledName=planMe.name, tacticId=null;
-  const gen=generateBots(side,planBot); const botP=gen.bots;
+  const myP=generateBots(oppSide,planMe,{roles:[0,1,2,3,4].map(roleOf),names:rp().map(p=>p.name)}).bots, calledName=planMe.name, tacticId=null;
+  const gen=generateBots(side,planBot,{roles:match.opp.players.map(p=>p.role),names:match.opp.players.map(p=>p.name)}); const botP=gen.bots;
   const myStats={}, botStats={};
-  Object.keys(myP).forEach(id=>{const i=parseInt(id.slice(1),10)-1; const p=rp()[i]; myStats[id]=effStats(p,buyMe.gear,roleOf(i),formOf(p)); myStats[id].weapon=pickWeapon(roleOf(i),buyMe.type,side); Object.assign(myStats[id],armorFor(buyMe.type));});
-  Object.keys(botP).forEach(id=>{const i=parseInt(id.slice(1),10)-1; const p=m.opp.players[i]; botStats[id]=effStats(p,buyBot.gear,p.role,50); botStats[id].weapon=pickWeapon(p.role,buyBot.type,oppSide); Object.assign(botStats[id],armorFor(buyBot.type));});
+  Object.keys(myP).forEach(id=>{const i=parseInt(id.slice(1),10)-1; const p=rp()[i]; const sh=shop(roleOf(i),side,m.ecoMe.money[i],buyMe.type,(m.ecoMe.keptW||[])[i],(m.ecoMe.keptA||[])[i]); myStats[id]=effStats(p,gearOf(sh.w,sh.a),roleOf(i),formOf(p)); Object.assign(myStats[id],{weapon:sh.w,armor:sh.a,helmet:sh.h,grenades:sh.g,kit:sh.kit}); buyMe.spend[i]=sh.cost; buyMe.left[i]=m.ecoMe.money[i]-sh.cost;});
+  Object.keys(botP).forEach(id=>{const i=parseInt(id.slice(1),10)-1; const p=m.opp.players[i]; const sh=shop(p.role,oppSide,m.ecoBot.money[i],buyBot.type,(m.ecoBot.keptW||[])[i],(m.ecoBot.keptA||[])[i]); botStats[id]=effStats(p,gearOf(sh.w,sh.a),p.role,50); Object.assign(botStats[id],{weapon:sh.w,armor:sh.a,helmet:sh.h,grenades:sh.g,kit:sh.kit}); buyBot.spend[i]=sh.cost; buyBot.left[i]=m.ecoBot.money[i]-sh.cost;});
   const res=simulateRound(myP,botP,myStats,botStats,side==='T',myIGL,botIGL,{me:planMe,bot:planBot});
   res.names={}; Object.keys(myP).forEach(id=>{res.names['me'+id]=rp()[parseInt(id.slice(1),10)-1].name;}); Object.keys(botP).forEach(id=>{res.names['bot'+id]=m.opp.players[parseInt(id.slice(1),10)-1].name;});
   return {myP,botP,res,side,buyMe,buyBot,calledName,tacticId,planMe,planBot};
@@ -2144,7 +2244,7 @@ function applyRound(pr){
   const m=match, res=pr.res, won=res.winner==='me';
   { const A=roster.an=roster.an||{side:{},buy:{}}; (A.side[pr.side]=A.side[pr.side]||[0,0])[won?0:1]++; (A.buy[pr.buyMe.type]=A.buy[pr.buyMe.type]||[0,0])[won?0:1]++; }
   { const G=goalsNow(), K=res.kills||[], dth=K.filter(k=>k.v.startsWith('me')).length;
-    if(won&&(m.round===0||m.round===12))G.p.pistol++; if(won&&dth>=2)G.p.clutch++; G.p.kills+=K.length-dth;
+    if(won&&(m.round===0||m.round===12))G.p.pistol++; if(won&&dth>=2)G.p.clutch++; G.p.kills+=K.length-dth; K.forEach(k=>{ const att=k.v.startsWith('me')?pr.side==='T':pr.side==='CT'; (SPOTMEM[k.v]=SPOTMEM[k.v]||[]).push({x:k.vx,y:k.vy,att}); if(SPOTMEM[k.v].length>4)SPOTMEM[k.v].shift(); });
     const S=m.sw=m.sw||{T:[0,0],CT:[0,0]}; S[pr.side][won?0:1]++; }
   const kMe=[0,0,0,0,0],kBot=[0,0,0,0,0];
   (res.kills||[]).forEach(k=>{
@@ -2164,7 +2264,9 @@ function applyRound(pr){
   for(let i=0;i<5;i++){ m.ecoMe.money[i]=Math.max(0,m.ecoMe.money[i]-pr.buyMe.spend[i]); m.ecoBot.money[i]=Math.max(0,m.ecoBot.money[i]-pr.buyBot.spend[i]); }
   const aliveIdx=(deadMap)=>[0,1,2,3,4].map(i=>!Object.keys(deadMap).some(id=>parseInt(id.slice(1),10)-1===i));
   const aMe=aliveIdx(res.myDead), aBot=aliveIdx(res.botDead);
-  m.ecoMe.kept=aMe.map(a=>a&&pr.buyMe.gear>=0.84?1:0); m.ecoBot.kept=aBot.map(a=>a&&pr.buyBot.gear>=0.84?1:0);
+  { const kp=(al,ids,pre,eco)=>{ const LO=pr.res.loadout||{}; eco.kept=[0,0,0,0,0]; eco.keptW=[null,null,null,null,null]; eco.keptA=[null,null,null,null,null];
+      al.forEach(i=>{ const l=LO[pre+ids[i]]||{}; if(l.w&&PRIMARY.includes(l.w)){ eco.kept[i]=1; eco.keptW[i]=l.w; } if(l.a)eco.keptA[i]={a:1,h:l.h}; }); };
+    kp(aMe,Object.keys(pr.myP),'me',m.ecoMe); kp(aBot,Object.keys(pr.botP),'bot',m.ecoBot); }
   const upd=(mm,plan,sd,w)=>{ const r=mm.res[plan.id]=mm.res[plan.id]||{w:0,l:0}; if(w)r.w++; else r.l++; mm.last=plan.id; if(sd==='T')mm.tRecent.push(plan.site); else mm.ctRecent.push(plan.id); };
   upd(m.mem.me,pr.planMe,pr.side,won); upd(m.mem.bot,pr.planBot,pr.side==='T'?'CT':'T',!won);
   if(won)m.score.me++; else m.score.bot++;
@@ -2330,11 +2432,11 @@ function startTour(){ const steps=[['🎯','Play','Your next match sits on the P
   const show=()=>{ const [e,t,d]=steps[i]; o.innerHTML=`<div class="tc"><div style="font-size:44px">${e}</div><h3>${t}</h3><p>${d}</p><button class="bigbtn" id="tNext">${i<2?'Next':'Let\'s go'}</button><div class="note">${i+1} / 3</div></div>`;
     o.querySelector('#tNext').onclick=()=>{ if(++i<3)show(); else{ roster.toured=true; saveRoster(); o.remove(); } }; }; show(); }
 function renderBuyPanel(pr){ const el=document.getElementById('buyPanel'); if(!el)return; const LO=(pr.res&&pr.res.loadout)||{};
-  const col=(title,type,team,ids,pls,spend,pre)=>`<div class="buyh"><div>${title}</div><span>${type.toUpperCase()}</span></div><div class="by hd"><span>PLAYER</span><span>WEAPON</span><span>ARMOR</span><span>UTILITY</span></div>`+
+  const col=(title,type,team,ids,pls,spend,pre,left)=>`<div class="buyh"><div>${title}</div><span>${type.toUpperCase()}</span></div><div class="by byh"><span>PLAYER</span><span>WEAPON</span><span>ARMOR</span><span>UTILITY</span></div>`+
     ids.map((id,i)=>{ const ix=parseInt(id.slice(1),10)-1, l=LO[pre+id]||{}, g=l.g||{}, nm=(pls[ix]&&pls[ix].name)||id;
-      const ut=('💨'.repeat(g.smoke||0)+'⚡'.repeat(g.flash||0)+'🔥'.repeat(g.molly||0)+'💥'.repeat(g.he||0))||'—';
-      return `<div class="by"><b>${nm}</b><span>${l.w||'—'}<br><em>$${(spend[ix]||0).toLocaleString()}</em></span><span>${l.h?'🛡 +helm':l.a?'🛡':'—'}</span><span class="g">${ut}</span></div>`; }).join('');
-  el.innerHTML=col(MY_TEAM,pr.buyMe.type,'me',Object.keys(pr.myP),rp(),pr.buyMe.spend,'me')+col(match.opp.name,pr.buyBot.type,'bot',Object.keys(pr.botP),match.opp.players,pr.buyBot.spend,'bot')+`<div class="note" style="margin:8px 0 0">💨 smoke  ⚡ flash  🔥 molotov  💥 HE</div>`;
+      const kit=l.k?'🔧':''; const ut=(kit+'💨'.repeat(g.smoke||0)+'⚡'.repeat(g.flash||0)+'🔥'.repeat(g.molly||0)+'💥'.repeat(g.he||0))||'—';
+      return `<div class="by"><b>${nm}</b><span>${l.w||'—'}<br><em>spent $${(spend[ix]||0).toLocaleString()} · left $${(left[ix]||0).toLocaleString()}</em></span><span>${l.h?'🛡 +helm':l.a?'🛡':'—'}</span><span class="g">${ut}</span></div>`; }).join('');
+  el.innerHTML=col(MY_TEAM,pr.buyMe.type,'me',Object.keys(pr.myP),rp(),pr.buyMe.spend,'me',pr.buyMe.left||[])+col(match.opp.name,pr.buyBot.type,'bot',Object.keys(pr.botP),match.opp.players,pr.buyBot.spend,'bot',pr.buyBot.left||[])+`<div class="note" style="margin:8px 0 0">💨 smoke  ⚡ flash  🔥 molotov  💥 HE  🔧 kit</div>`;
   el.style.display=''; }
 function renderReport(){
   const m=match, rep=document.getElementById('reportArea'); rep.style.display='';
@@ -2404,13 +2506,15 @@ function drawFx(){
     if(u.type==='flash'&&T>=u.t+land&&T<u.t+land+0.6){ const a=(T-u.t-land)/0.6;
       el('circle',{cx:u.x,cy:u.y,r:30+140*a,fill:'#ffffff',opacity:(0.85*(1-a)).toFixed(2)},playFxOver); }
   });
-  (simResult.shots||[]).forEach(sh=>{ const a=T-sh.t;
-    if(a>=0&&a<0.12){ const dx=sh.x2-sh.x1, dy=sh.y2-sh.y1, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
-      const ex=sh.x2+nx*sh.mo+(sh.hit?0:dx/L*60), ey=sh.y2+ny*sh.mo+(sh.hit?0:dy/L*60);
-      el('line',{x1:sh.x1,y1:sh.y1,x2:ex,y2:ey,stroke:sh.hit?'#ffe27a':'#fff3c4','stroke-width':sh.hit?3:2,opacity:sh.hit?'0.95':'0.55'},playFxOver);
-      el('circle',{cx:sh.x1,cy:sh.y1,r:9,fill:'#ffd35c',opacity:'0.9'},playFxOver); }
+  (simResult.shots||[]).forEach(sh=>{ const a=T-sh.t; // tracers follow the shooter and target as they are drawn now, not where the duel started
+    const PP=simResult.positions, sq=sh.k&&PP[sh.k]?posAt(PP[sh.k],T):null, vq=sh.v&&PP[sh.v]?posAt(PP[sh.v],T):null;
+    const x1=sq?sq.x:sh.x1, y1=sq?sq.y:sh.y1, x2=vq?vq.x:sh.x2, y2=vq?vq.y:sh.y2;
+    if(a>=0&&a<0.12){ const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
+      const ex=x2+nx*sh.mo+(sh.hit?0:dx/L*60), ey=y2+ny*sh.mo+(sh.hit?0:dy/L*60);
+      el('line',{x1:x1,y1:y1,x2:ex,y2:ey,stroke:sh.hit?'#ffe27a':'#fff3c4','stroke-width':sh.hit?3:2,opacity:sh.hit?'0.95':'0.55'},playFxOver);
+      el('circle',{cx:x1,cy:y1,r:9,fill:'#ffd35c',opacity:'0.9'},playFxOver); }
     if(sh.hit&&a>=0&&a<0.9){ const o=(1-a/0.9).toFixed(2);
-      const tx=el('text',{x:sh.x2+22,y:sh.y2-18-a*40,fill:sh.hs?'#ffd35c':'#ff6b6b','font-size':sh.hs?30:24,'font-weight':'700','font-family':'JetBrains Mono,monospace',opacity:o,stroke:'#000','stroke-width':4,'paint-order':'stroke'},playFxOver);
+      const tx=el('text',{x:x2+22,y:y2-18-a*40,fill:sh.hs?'#ffd35c':'#ff6b6b','font-size':sh.hs?30:24,'font-weight':'700','font-family':'JetBrains Mono,monospace',opacity:o,stroke:'#000','stroke-width':4,'paint-order':'stroke'},playFxOver);
       tx.textContent='-'+sh.dmg+(sh.hs?' HS':''); } });
   const bl=simResult.bombLog||[]; let b=null; for(const e of bl){ if(e.t<=T)b=e; else break; }
   if(b&&!(simResult.planted&&T>=simResult.plantTime)){
@@ -2418,7 +2522,7 @@ function drawFx(){
     if(bx!=null){ el('rect',{x:bx-9,y:by-7,width:18,height:14,rx:3,fill:'#ff5a3c',stroke:'#1a0a05','stroke-width':2},playFxOver); }
   }
 }
-let playTime=0, playPlaying=false, playLastTs=null, loggedEv=new Set(), bombEl=null;
+let playSpeed=1, playTime=0, playPlaying=false, playLastTs=null, loggedEv=new Set(), bombEl=null;
 function playRenderFrame(){
   const D=simResult.duration;
   const upd=(key,dotKey,deadMap,id,team,label,small)=>{
@@ -2464,7 +2568,7 @@ function playRenderFrame(){
 function playTick(ts){
   if(!playPlaying)return;
   if(playLastTs===null)playLastTs=ts;
-  const dt=(ts-playLastTs)/1000; playLastTs=ts; playTime+=dt;
+  const dt=(ts-playLastTs)/1000; playLastTs=ts; playTime+=dt*playSpeed;
   if(playTime>=simResult.duration){playTime=simResult.duration;playPlaying=false;document.getElementById('playRoundBtn').textContent='▶';playRenderFrame();finishRound();return;}
   playRenderFrame(); if(playPlaying)requestAnimationFrame(playTick);
 }
@@ -2476,6 +2580,7 @@ document.getElementById('playScrub').addEventListener('input',e=>{
   playPlaying=false; document.getElementById('playRoundBtn').textContent='▶';
   playTime=(e.target.value/100)*simResult.duration; playRenderFrame();
 });
+document.getElementById('speedBtn').onclick=e=>{ playSpeed=playSpeed===1?2:1; e.currentTarget.textContent='×'+playSpeed; e.currentTarget.style.background=playSpeed===2?'#101820':''; e.currentTarget.style.color=playSpeed===2?'#f2c14e':''; e.currentTarget.style.boxShadow=playSpeed===2?'inset 0 0 0 2px #f2c14e':''; };
 document.getElementById('skipBtn').onclick=()=>{ playPlaying=false; playTime=simResult.duration; playRenderFrame(); finishRound(); };
 
 function finishRound(){
