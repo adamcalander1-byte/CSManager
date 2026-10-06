@@ -1576,7 +1576,7 @@ const LINEUPS={
 };
 function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,plans){
   plans=plans||{};
-  const coord={me:0.9+0.2*Math.min(1,iglMe/100),bot:0.9+0.2*Math.min(1,iglBot/100)};
+  const coord={me:0.7+0.6*Math.min(1,iglMe/100),bot:0.7+0.6*Math.min(1,iglBot/100)};
   const STEP=0.4,PLANT_T=3,DEFUSE_T=7,FUSE=40,MAXT=ROUND_LEN+FUSE+5,PR=110,CR=150;
   const attSide=attackerIsMe?'me':'bot', defSide=attackerIsMe?'bot':'me';
   const igl={me:iglMe,bot:iglBot};
@@ -1659,6 +1659,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     let eA=a.stats.aim*0.55+a.stats.pos*0.30+(nA<nB?a.stats.clutch*0.15:0);
     let eB=b.stats.aim*0.55+b.stats.pos*0.30+(nB<nA?b.stats.clutch*0.15:0);
     eA*=1+((a.stats.clutch-60)/100)*(nA===1?0.35:nA<nB?0.2:0.06); eB*=1+((b.stats.clutch-60)/100)*(nB===1?0.35:nB<nA?0.2:0.06); // composure under pressure
+    eA+=a.stats.util*0.28; eB+=b.stats.util*0.28; // flash-peeks, jiggle timing and grenade use inside fights
     const bonus=s=>s.cmd==='kill'?1.3:s.cmd==='hold'?1.15:1;
     eA*=bonus(sa); eB*=bonus(sb);
     const dd=dist(a.pos,b.pos);
@@ -1705,7 +1706,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       }
       const mo=hit?0:(Math.random()<0.5?-1:1)*(16+Math.random()*30);
       shots.push({t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
-      S.n++; S.next+=spray?W.cyc:W.tap;
+      S.n++; S.next+=spray?W.cyc:W.tap; S.u.lastShot=tt;
+      if(S.u.ammo==null)S.u.ammo=W.mag; S.u.ammo--;
+      if(S.u.ammo<=0){ S.u.ammo=W.mag; S.next+=W.rel; events.push({t:tt,x:S.u.pos.x,y:S.u.pos.y,side:S.u.side,note:true,text:nameOf(S.u)+' is out of ammo — reloading'}); }
       if(T.u.hp<=0){ killer=S.u; victim=T.u; kShot={t:tt,hs,w:S.u.stats.weapon}; break; }
     }
     a.aimAt={x:b.pos.x,y:b.pos.y}; a.aimUntil=t+MAXD; b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+MAXD;
@@ -1988,7 +1991,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t,1,m.key);addSight('bot',m.pos,t,1,b.key);}
       }
     }
-    if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);fireTick(t);hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
+    if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);fireTick(t);all.forEach(u=>{ const M=WSTAT[u.stats.weapon]; if(u.alive&&M&&u.ammo!=null&&u.ammo<M.mag&&t-(u.lastShot||-9)>3.5)u.ammo=M.mag; }); // reload when nobody is shooting at him
+    hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
       for(const u of all){ if(!u.alive)continue; let best=null,bd=750;
         for(const e of all){ if(!e.alive||e.side===u.side)continue; const d=dist(u.pos,e.pos); if(d<bd&&seeClear(u.pos,e.pos)){bd=d;best=e;} }
         if(best){u.aimAt={x:best.pos.x,y:best.pos.y};u.aimUntil=t+1.1;}
@@ -2123,21 +2127,21 @@ document.getElementById('iglDecideBtn').onclick=()=>{
 
 // ================== CAREER: full matches, economy, stats, league ==================
 const WSTAT={
- 'AK-47':{dmg:36,pen:0.775,cyc:0.1,tap:0.32,range:3200,acc:1,run:0.35,auto:1},
- 'M4A4':{dmg:33,pen:0.7,cyc:0.09,tap:0.3,range:3200,acc:1.03,run:0.35,auto:1},
- 'M4A1-S':{dmg:38,pen:0.7,cyc:0.1,tap:0.3,range:3400,acc:1.06,run:0.35,auto:1},
- 'Galil AR':{dmg:30,pen:0.775,cyc:0.09,tap:0.3,range:2600,acc:0.95,run:0.35,auto:1},
- 'FAMAS':{dmg:30,pen:0.7,cyc:0.09,tap:0.3,range:2600,acc:0.95,run:0.35,auto:1},
- 'AWP':{dmg:115,pen:0.975,cyc:1.46,tap:1.46,range:9000,acc:1.35,run:0.15,auto:0},
- 'SSG 08':{dmg:88,pen:0.85,cyc:1.25,tap:1.25,range:8000,acc:1.3,run:0.45,auto:0},
- 'MAC-10':{dmg:29,pen:0.575,cyc:0.075,tap:0.2,range:1400,acc:0.9,run:0.75,auto:1},
- 'MP9':{dmg:26,pen:0.6,cyc:0.07,tap:0.2,range:1500,acc:0.92,run:0.75,auto:1},
- 'Desert Eagle':{dmg:53,pen:0.93,cyc:0.3,tap:0.4,range:2400,acc:0.95,run:0.3,auto:0},
- 'USP-S':{dmg:35,pen:0.505,cyc:0.2,tap:0.25,range:2000,acc:1,run:0.5,auto:0},
- 'Glock-18':{dmg:30,pen:0.47,cyc:0.15,tap:0.2,range:1400,acc:0.9,run:0.55,auto:0},
- 'Tec-9':{dmg:33,pen:0.9,cyc:0.12,tap:0.2,range:1500,acc:0.88,run:0.55,auto:0},
- 'Five-SeveN':{dmg:32,pen:0.91,cyc:0.15,tap:0.22,range:1800,acc:0.95,run:0.5,auto:0},
- 'P250':{dmg:38,pen:0.64,cyc:0.15,tap:0.22,range:1700,acc:0.95,run:0.5,auto:0}};
+ 'AK-47':{mag:30,rel:2.5,dmg:36,pen:0.775,cyc:0.1,tap:0.32,range:3200,acc:1,run:0.35,auto:1},
+ 'M4A4':{mag:30,rel:3.1,dmg:33,pen:0.7,cyc:0.09,tap:0.3,range:3200,acc:1.03,run:0.35,auto:1},
+ 'M4A1-S':{mag:20,rel:2.3,dmg:38,pen:0.7,cyc:0.1,tap:0.3,range:3400,acc:1.06,run:0.35,auto:1},
+ 'Galil AR':{mag:35,rel:2.9,dmg:30,pen:0.775,cyc:0.09,tap:0.3,range:2600,acc:0.95,run:0.35,auto:1},
+ 'FAMAS':{mag:25,rel:3.3,dmg:30,pen:0.7,cyc:0.09,tap:0.3,range:2600,acc:0.95,run:0.35,auto:1},
+ 'AWP':{mag:5,rel:3.7,dmg:115,pen:0.975,cyc:1.46,tap:1.46,range:9000,acc:1.35,run:0.15,auto:0},
+ 'SSG 08':{mag:10,rel:3.7,dmg:88,pen:0.85,cyc:1.25,tap:1.25,range:8000,acc:1.3,run:0.45,auto:0},
+ 'MAC-10':{mag:30,rel:2.6,dmg:29,pen:0.575,cyc:0.075,tap:0.2,range:1400,acc:0.9,run:0.75,auto:1},
+ 'MP9':{mag:30,rel:2.1,dmg:26,pen:0.6,cyc:0.07,tap:0.2,range:1500,acc:0.92,run:0.75,auto:1},
+ 'Desert Eagle':{mag:7,rel:2.2,dmg:53,pen:0.93,cyc:0.3,tap:0.4,range:2400,acc:0.95,run:0.3,auto:0},
+ 'USP-S':{mag:12,rel:2.2,dmg:35,pen:0.505,cyc:0.2,tap:0.25,range:2000,acc:1,run:0.5,auto:0},
+ 'Glock-18':{mag:20,rel:2.3,dmg:30,pen:0.47,cyc:0.15,tap:0.2,range:1400,acc:0.9,run:0.55,auto:0},
+ 'Tec-9':{mag:18,rel:2.4,dmg:33,pen:0.9,cyc:0.12,tap:0.2,range:1500,acc:0.88,run:0.55,auto:0},
+ 'Five-SeveN':{mag:20,rel:2.2,dmg:32,pen:0.91,cyc:0.15,tap:0.22,range:1800,acc:0.95,run:0.5,auto:0},
+ 'P250':{mag:13,rel:2.2,dmg:38,pen:0.64,cyc:0.15,tap:0.22,range:1700,acc:0.95,run:0.5,auto:0}};
 function armorFor(buy){ if(buy==='Full buy')return {armor:1,helmet:1}; if(buy==='Force buy'){const a=Math.random()<0.85;return {armor:a?1:0,helmet:a&&Math.random()<0.6?1:0};}
   if(buy==='Pistol')return {armor:Math.random()<0.3?1:0,helmet:0}; return {armor:Math.random()<0.15?1:0,helmet:0}; }
 const HS_BASE={'AK-47':0.42,'M4A1-S':0.38,'M4A4':0.36,'Galil AR':0.33,'FAMAS':0.32,'MAC-10':0.25,'MP9':0.25,'Desert Eagle':0.55,'USP-S':0.5,'Glock-18':0.4,'Tec-9':0.35,'Five-SeveN':0.4,'P250':0.45,'SSG 08':0.2,'AWP':0.06};
