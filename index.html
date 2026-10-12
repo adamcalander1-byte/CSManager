@@ -1170,7 +1170,8 @@ const CALLOUTS={
  'T Ramp':{x:1060,y:700},
  'A Ramp':{x:966,y:842,w:{x:1060,y:700}},
  'Palace':{x:970,y:994,w:{x:1150,y:1040},l:{x:1100,y:1075}},
- 'Mid':{x:770,y:610,w:{x:880,y:500}},
+  'Mid':{x:770,y:610,w:{x:880,y:500}},
+ 'Short':{x:620,y:520,w:{x:730,y:515}},
  'Connector':{x:674,y:722},
  'Apps':{x:596,y:262,w:{x:840,y:150}},
  'A Site':{x:718,y:1034,l:{x:718,y:1100}},
@@ -1470,8 +1471,8 @@ function routePts(a,b,p){ const d=Math.hypot(a.x-b.x,a.y-b.y); let pts=null;
   const A0=snapPt(a); return pts.map((q,i)=>{ if(!(i>0&&i<pts.length-1))return q; const j=snapPt({x:q.x+(Math.random()-0.5)*30,y:q.y+(Math.random()-0.5)*30}), pr=i===0?A0:pts[i-1], nx=pts[i+1];
     return (lineClear(pr,j,navPath,0)&&lineClear(j,nx,navPath,0))?j:q; }); // not the exact same line every round, but never through a wall
 }
-function routeToPath(from,to,cmdAtEnd,radiusAtEnd){
-  const pts=routePts(from,to,0.4);
+function routeToPath(from,to,cmdAtEnd,radiusAtEnd,pv){
+  const pts=routePts(from,to,pv==null?0.4:pv);
   return pts.map((p,i)=>({x:p.x,y:p.y,time:null,cmd:i===pts.length-1?cmdAtEnd:'move',radius:i===pts.length-1?radiusAtEnd:null,target:null}));
 }
 // ============ SMART ENGINE: navmesh movement, real line-of-sight, team AI ============
@@ -1481,7 +1482,7 @@ const STRATS_T=[
   {id:'rushA',name:'Fast rush A',site:'A',speed:'fast',layout:'allA'},
   {id:'rushB',name:'Fast rush B',site:'B',speed:'fast',layout:'allB'},
   {id:'splitA',name:'Split A (Palace + Connector)',site:'A',speed:'mid',layout:'splitA'},
-  {id:'splitB',name:'Split B (Apps + Mid)',site:'B',speed:'mid',layout:'splitB'},
+  {id:'splitB',name:'Split B (Apps + Short)',site:'B',speed:'mid',layout:'splitB'},
   {id:'fakeBA',name:'Fake B → hit A',site:'A',speed:'default',layout:'default',fake:true},
   {id:'fakeAB',name:'Fake A → hit B',site:'B',speed:'default',layout:'default',fake:true},
   {id:'slowA',name:'Slow default → late A',site:'A',speed:'slow',layout:'default'},
@@ -1551,13 +1552,13 @@ function aggFor(name,role){ return Math.min(1.45,Math.max(0.65,0.7+((String(name
 function wpick(items,wf){ const w=items.map(wf), tot=w.reduce((a,b)=>a+b,0); let r=Math.random()*tot; for(let i=0;i<items.length;i++){ r-=w[i]; if(r<=0)return items[i]; } return items[items.length-1]; }
 function setupT(plan,info){
   const lean=(plan&&plan.site)||(Math.random()<0.5?'A':'B'), eco=plan&&plan.speed==='fast', fk=plan&&plan.fake;
-  const zones={L:lean==='A'?['A Ramp','Palace']:['Apps'],M:['Mid'],O:lean==='A'?['Apps']:['A Ramp','Palace']};
-  const LL={splitA:['Palace','Palace','A Ramp','Mid','Mid'],splitB:['Apps','Apps','Apps','Mid','Mid'],midB:['Mid','Mid','Mid','Apps','Apps'],palaceA:['Palace','Palace','Palace','A Ramp','A Ramp']};
+  const zones={L:lean==='A'?['A Ramp','Palace']:['Apps'],M:[lean==='B'?'Short':'Mid'],O:lean==='A'?['Apps']:['A Ramp','Palace']};
+  const LL={splitA:['Palace','Palace','A Ramp','Mid','Mid'],splitB:['Apps','Apps','Apps','Short','Short'],midB:['Mid','Mid','Mid','Apps','Apps'],palaceA:['Palace','Palace','Palace','A Ramp','A Ramp']};
   if(plan&&LL[plan.layout]){ const lanes=LL[plan.layout].slice(), out=[], pr0={AWP:0,Lurker:1,Entry:2,Support:3,Anchor:4};
     [0,1,2,3,4].sort((x,y)=>(pr0[info.roles[x]]??5)-(pr0[info.roles[y]]??5)).forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+((plan&&plan.aggr)||0);
       let k=role==='AWP'?lanes.indexOf('Mid'):-1; if(k<0)k=Math.floor(Math.random()*lanes.length); const n=lanes.splice(k,1)[0], c=CALLOUTS[n], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(n);
       out[i]=snapPt({x:base.x+(Math.random()-0.5)*110,y:base.y+(Math.random()-0.5)*110}); }); return out; }
-  const quota=eco?{L:4,M:1,O:0}:fk?{L:2,M:1,O:2}:{L:3,M:1,O:1}, pri={Entry:0,Support:1,Anchor:2,AWP:3,Lurker:4}, res=[];
+  const quota=eco?(Math.random()<0.3?{L:4,M:1,O:0}:{L:5,M:0,O:0}):fk?{L:2,M:1,O:2}:{L:3,M:1,O:1}, pri={Entry:0,Support:1,Anchor:2,AWP:3,Lurker:4}, res=[];
   [0,1,2,3,4].sort((x,y)=>(pri[info.roles[x]]??5)-(pri[info.roles[y]]??5)).forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+((plan&&plan.aggr)||0);
     const zs=['L','M','O'].filter(z=>quota[z]>0)||['L'], zk=wpick(zs.length?zs:['L'],z=>{ let w=z==='L'?2:1; if(role==='Lurker')w*=z==='O'?3:z==='M'?2:0.3; if(role==='AWP')w*=z==='M'?2:1; if(role==='Entry'&&z==='L')w*=2; return w; });
     quota[zk]--; const k=zones[zk][Math.floor(Math.random()*zones[zk].length)], c=CALLOUTS[k], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(k);
@@ -1567,7 +1568,7 @@ function setupT(plan,info){
 function setupCT(plan,info){
   const A=SITE_HOLD.A,B=SITE_HOLD.B,id=(plan&&plan.id)||'std';
   const spots=[{p:A[0],s:'A',f:0,k:0},{p:A[1],s:'A',f:0,k:1},{p:A[2],s:'A',f:0,k:2},{p:B[0],s:'B',f:0,k:0},{p:B[1],s:'B',f:0,k:1},{p:B[2],s:'B',f:0,k:2},
-    {p:CONNECTOR,s:'M',f:1,k:3},{p:CT_INFO[0],s:'M',f:1,k:3},{p:CT_INFO[1],s:'A',f:1,k:3},{p:CT_INFO[2],s:'M',f:1.3,k:3},{p:CT_INFO[3],s:'B',f:1,k:3},{p:CT_INFO[4],s:'B',f:1.3,k:3}];
+    {p:CONNECTOR,s:'M',f:1,k:3},{p:CT_INFO[0],s:'M',f:1,k:3},{p:snapPt({x:640,y:520}),s:'M',f:1.2,k:3,n:'Short'},{p:CT_INFO[1],s:'A',f:1,k:3},{p:CT_INFO[2],s:'M',f:1.3,k:3},{p:CT_INFO[3],s:'B',f:1,k:3},{p:CT_INFO[4],s:'B',f:1.3,k:3}];
   // the call decides how many go where (so what the IGL says is what the team does); each player decides his own spot inside that split
   const Q=({std:{A:2,M:1,B:2},stackA:{A:3,M:1,B:1},stackB:{A:1,M:1,B:3},aggro:{A:1,M:3,B:1},passive:{A:2,M:1,B:2},midStack:{A:2,M:2,B:1}}[id]||{A:2,M:1,B:2}); const quota={...Q};
   const pri={Anchor:0,Support:1,AWP:2,Entry:3,Lurker:4}, order=[0,1,2,3,4].sort((a,b)=>(pri[info.roles[a]]??5)-(pri[info.roles[b]]??5)), used=new Set(), out=[];
@@ -1587,10 +1588,10 @@ function generateBots(mySide,plan,info){
   info=info||{}; info.roles=info.roles||ids.map(id=>stats[id].role); info.names=info.names||ids.map(id=>stats[id].name);
   if(mySide==='T'){
     plan=plan||STRATS_CT[0]; const sp=setupCT(plan,info);
-    ids.forEach((id,i)=>{ bots[id]={x:CTSPAWN.x,y:CTSPAWN.y,team:'ct',path:routeToPath(CTSPAWN,sp[i].p,'kill',sp[i].r)}; });
+    ids.forEach((id,i)=>{ bots[id]={x:CTSPAWN.x,y:CTSPAWN.y,team:'ct',path:routeToPath(CTSPAWN,sp[i].p,'kill',sp[i].r,0.15)}; });
   } else {
     plan=plan||STRATS_T[0]; const posts=setupT(plan,info);
-    ids.forEach((id,i)=>{ const start=T_SPREAD[i]; bots[id]={x:start.x,y:start.y,team:'t',path:routeToPath(start,posts[i],'hold',240)}; });
+    ids.forEach((id,i)=>{ const start=T_SPREAD[i]; bots[id]={x:start.x,y:start.y,team:'t',path:routeToPath(start,posts[i],'hold',240,0)}; });
   }
   return {bots,stats,igl};
 }
@@ -1647,6 +1648,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   const inv=u=>u.inv||(u.inv=u.stats.grenades?{smoke:0,flash:0,molly:0,he:0,...u.stats.grenades}:(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
   const aggOf=u=>u._agg||(u._agg=Math.min(1.45,Math.max(0.65,0.7+((String(nameOf(u))).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(u.stats.role==='Entry'?0.2:(u.stats.role==='Lurker'||u.stats.role==='AWP')?-0.15:0)+((plans[u.side]&&plans[u.side].aggr)||0))));
   all.forEach(u=>{ const c={...u.stats}; for(const k of ['aim','pos','util','clutch'])c[k]=60+(c[k]-60)*STAT_SCALE; c.igl=60+((c.igl||60)-60)*STAT_SCALE; u.stats=c; });
+    all.forEach(u=>{ if(u.side===attSide)u.noVia=true; }); // attackers walk the tactic's route, no random detours
   all.forEach(u=>{ u.inv0={...inv(u)}; });
   const fires=[]; let pmDone=false;
   const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
@@ -1736,8 +1738,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const db=dmgBy[T.u.key]=dmgBy[T.u.key]||{}; db[S.u.key]=(db[S.u.key]||0)+real; D.dd.push([S.u.key,T.u.key,real]);
         D.rec((hpLog[T.u.key]=hpLog[T.u.key]||[]),{t:tt,hp:Math.max(0,T.u.hp)});
       }
-      const mo=hit?0:(Math.random()<0.5?-1:1)*(16+Math.random()*30);
-      D.rec(shots,{t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
+      const REC={'AK-47':4.5,'M4A4':3.2,'M4A1-S':2.4,'Galil AR':3.8,'FAMAS':3.6,'MAC-10':2.2,'MP9':2.0}, rk=spray?(REC[S.u.stats.weapon]||2):0; if(S.dir==null)S.dir=Math.random()<0.5?-1:1;
+        const sg=(spray&&S.n>=3)?S.dir:(Math.random()<0.5?-1:1), mo=hit?0:sg*(14+Math.random()*26+S.n*rk); // a spray pulls to one side and climbs the longer it runs
+        D.rec(shots,{t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key,wn:S.u.stats.weapon,n:S.n,sp:spray?1:0});
       S.n++; S.next+=spray?W.cyc:W.tap; S.u.lastShot=tt;
       if(S.u.ammo==null)S.u.ammo=W.mag; S.u.ammo--;
       if(S.u.ammo<=0){ S.u.ammo=W.mag; S.next+=W.rel; D.rec(reloads,{k:S.u.key,t0:tt,t1:tt+W.rel}); D.rec(events,{t:tt,x:S.u.pos.x,y:S.u.pos.y,side:S.u.side,note:true,text:nameOf(S.u)+' is out of ammo — reloading'}); }
@@ -1965,7 +1968,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
           // good IGLs fake the other site shortly before the execute
           const other2=st.site==='A'?'B':'A';
           if(!st.faked&&((plans[side]&&plans[side].fake)||(q>0.6&&Math.random()<0.35))&&t>st.execT-14&&free.length>=3){ st.faked=true;
-            const fk=free.filter(u=>u!==carrier).slice(0,2); fk.forEach(u=>{pathQ(u,STAGE[other2][0]);setAct(u,'fake '+other2,t);});
+            const fk=free.filter(u=>u!==carrier).sort((a,b)=>dist(a.pos,STAGE[other2][0])-dist(b.pos,STAGE[other2][0])).slice(0,2); // the fake is done by the players already on that side fk.forEach(u=>{pathQ(u,STAGE[other2][0]);setAct(u,'fake '+other2,t);});
             say(STAGE[other2][0].x,STAGE[other2][0].y,'fake '+other2+' to pull rotations'); }
         }
         const adv=team.length-teamOf(defSide).length;
@@ -2715,10 +2718,12 @@ function drawFx(){
   (simResult.shots||[]).forEach(sh=>{ const a=T-sh.t; // tracers follow the shooter and target as they are drawn now, not where the duel started
     const PP=simResult.positions, sq=sh.k&&PP[sh.k]?posAtS(PP[sh.k],T):null, vq=sh.v&&PP[sh.v]?posAtS(PP[sh.v],T):null;
     const x1=sq?sq.x:sh.x1, y1=sq?sq.y:sh.y1, x2=vq?vq.x:sh.x2, y2=vq?vq.y:sh.y2;
-    if(a>=0&&a<0.12){ const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
-      const ex=x2+nx*sh.mo+(sh.hit?0:dx/L*60), ey=y2+ny*sh.mo+(sh.hit?0:dy/L*60);
-      el('line',{x1:x1,y1:y1,x2:ex,y2:ey,stroke:sh.hit?'#ffe27a':'#fff3c4','stroke-width':sh.hit?3:2,opacity:sh.hit?'0.95':'0.55'},playFxOver);
-      el('circle',{cx:x1,cy:y1,r:9,fill:'#ffd35c',opacity:'0.9'},playFxOver); }
+    { const wn=sh.wn||'', life=Math.max(0.05,Math.min(0.22,Math.hypot(x2-x1,y2-y1)/3600));
+      if(a>=0&&a<life+0.06){ const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
+        const ex=x2+nx*sh.mo+(sh.hit?0:dx/L*60), ey=y2+ny*sh.mo+(sh.hit?0:dy/L*60), Lt=Math.hypot(ex-x1,ey-y1)||1, f=Math.min(1,a/life), f0=Math.max(0,f-110/Lt);
+        if(a<life+0.01)el('line',{x1:x1+(ex-x1)*f0,y1:y1+(ey-y1)*f0,x2:x1+(ex-x1)*f,y2:y1+(ey-y1)*f,stroke:sh.hit?'#ffe27a':'#fff3c4','stroke-width':sh.hit?7:5,'stroke-linecap':'round',opacity:sh.hit?'1':'0.85',style:'filter:drop-shadow(0 0 4px #ffb347)'},playFxOver);
+        if(a<0.07){ const r=({'AWP':15,'SSG 08':13,'Desert Eagle':12,'AK-47':10,'M4A4':9,'M4A1-S':7,'Galil AR':10,'FAMAS':9,'MAC-10':8,'MP9':8})[wn]||8; el('circle',{cx:x1,cy:y1,r:(r*1.7*(1-a/0.1)).toFixed(1),fill:'#ffd35c',opacity:(0.95*(1-a/0.07)).toFixed(2)},playFxOver); }
+        if(sh.hit&&a>=life&&a<life+0.06){ const k=(a-life)/0.06; el('circle',{cx:x2,cy:y2,r:(14+26*k).toFixed(1),fill:'none',stroke:sh.hs?'#ffd35c':'#ff6b6b','stroke-width':5,opacity:(0.9*(1-k)).toFixed(2)},playFxOver); } } }
     if(sh.hit&&a>=0&&a<0.9){ const o=(1-a/0.9).toFixed(2);
       const tx=el('text',{x:x2+22,y:y2-18-a*40,fill:sh.hs?'#ffd35c':'#ff6b6b','font-size':sh.hs?30:24,'font-weight':'700','font-family':'JetBrains Mono,monospace',opacity:o,stroke:'#000','stroke-width':4,'paint-order':'stroke'},playFxOver);
       tx.textContent='-'+sh.dmg+(sh.hs?' HS':''); } });
