@@ -376,6 +376,24 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 .by.byh{border:0;color:#6f8099;font-size:10px;letter-spacing:.1em;padding:0 0 2px;width:auto;height:auto;display:grid}html{height:auto;min-height:100%}body{height:auto!important;min-height:100%;padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
 #intro,#tour{overflow-y:auto;-webkit-overflow-scrolling:touch}#tour .tc,#intro>*{flex-shrink:0}
 #intro{justify-content:safe center}#tour{align-items:safe center}
+.kf .wimg{height:15px;width:auto;margin:0 3px;filter:drop-shadow(0 0 1px #000)}.lr{display:grid;grid-template-columns:1fr 1fr;gap:10px}.lr h4{margin:0 0 4px;font:800 16px 'Barlow Condensed',sans-serif}
+.lrow{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;border-top:1px solid #223046}.lrow span{flex:0 0 74px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow i{flex:1;height:6px;background:#1a2433;border-radius:3px;overflow:hidden}.lrow i b{display:block;height:100%}.lrow em{font-style:normal;width:28px;text-align:right;font-weight:700}
+.lrow.dead{opacity:.45}.lrow.dead span{text-decoration:line-through}.kf .hsimg{height:17px;width:auto;margin:0 3px 0 1px;filter:drop-shadow(0 0 1px #000)}.scout{margin-top:6px;text-align:left}.srow{font-size:13px;padding:3px 0;color:#d4deea;line-height:1.35}.srow.tip{color:#f2c14e}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip2{font:700 12px 'Chakra Petch',sans-serif;padding:6px 10px;border-radius:999px;border:1px solid #2f4059;background:#131b27;color:#c9d5e4;min-height:34px}.chip2.on{background:#f2c14e;color:#1c1403;border-color:#f2c14e}.crow{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #223046;font-size:13px}.crow b{flex:0 0 96px}.crow span{flex:1}.crow.sub{padding-left:14px;border-top:0}.crow .tbtn{min-height:32px;padding:3px 10px;font-size:12px}details>summary{cursor:pointer;font:800 15px 'Barlow Condensed',sans-serif;padding:8px 0;color:#f2c14e}
+:root{--dim:#aebdd0}
+body{font-size:15px}
+.note{font-size:13.5px;line-height:1.45}.hk{font-size:14px}.hk2{font-size:13px}
+table.sb{font-size:14.5px}table.sb td,table.sb th{padding:8px 6px}
+.srow{font-size:14.5px;padding:5px 0}.crow{font-size:14.5px;padding:9px 0}.goalrow{font-size:14.5px}
+.lrow{font-size:14px;padding:6px 0}.lrow span{flex:0 0 84px}.by{font-size:13.5px}.by em{font-size:12.5px}
+.kf{font:700 12.5px 'Chakra Petch',sans-serif;padding:3px 8px}.kf .wimg{height:18px}.kf .hsimg{height:20px}
+.chip2{font-size:13.5px;padding:8px 12px}.tbtn{font-size:14px}.sectitle{font-size:13px;letter-spacing:.14em;color:#c3d0e2;margin:16px 0 8px}
+.rcard,.goalcard{margin:10px 0}
+.subbar{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;overflow-x:auto;padding:8px 0 10px;margin:0 -2px;position:sticky;top:0;z-index:20;background:linear-gradient(#0b1119 78%,rgba(11,17,25,0));scrollbar-width:none}
+.subbar::-webkit-scrollbar{display:none}
+.subbar button{font:800 14px 'Barlow Condensed',sans-serif;letter-spacing:.03em;text-transform:uppercase;padding:9px 4px;border-radius:999px;border:1px solid #2a3b53;background:#121a26;color:#aebdd0;min-height:40px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subbar button.on{background:#f2c14e;color:#1c1403;border-color:#f2c14e;box-shadow:0 2px 10px rgba(242,193,78,.25)}
+.pane-off{display:none!important}
 </style>
 </head>
 <body>
@@ -457,7 +475,7 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 
   <!-- ===================== ROSTER PAGE ===================== -->
   <div id="rosterPage" style="display:none"><div id="rosterCards"></div></div>
-  <div id="marketPage" style="display:none"><div id="marketTop"></div><div id="tradeBox"></div><div id="marketCards"></div></div>
+  <div id="marketPage" style="display:none"><div id="marketTop" data-pk="mkt" data-pane="buy"></div><div id="clubBox" data-pk="mkt" data-pane="club"></div><div id="tradeBox" data-pk="mkt" data-pane="trade"></div><div id="marketCards" data-pk="mkt" data-pane="buy"></div></div>
   <div id="packOv" class="packov" style="display:none"><div id="packStage" class="packstage"></div></div>
 
   <div id="statsPage" style="display:none"><div id="statsBody"></div></div>
@@ -467,15 +485,14 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
   <!-- ===================== PLAY PAGE ===================== -->
   <div id="playPage" style="display:none">
     <div id="playQueueArea">
-      <div class="hero" id="nextMatch"></div>
+      <div data-pk="play" data-pane="match"><div class="hero" id="nextMatch"></div>
       <button class="bigbtn" id="queueBtn">Play league match</button>
-      <div id="homeExtra"></div>
       <div class="friendly"><div class="flabel">Friendlies</div><div class="note fnote">Practice matches before the next Match Day. Players gain XP and improve — harder opponents give more.</div><div class="diffrow" id="diffRow"></div>
-      <button class="tbtn" id="friendlyBtn">Start friendly</button></div>
-      <div class="sectitle">Map pool</div>
-      <div class="maptiles" id="poolPreview"></div>
+      <button class="tbtn" id="friendlyBtn">Start friendly</button></div></div>
+      <div data-pk="play" data-pane="scout" id="scoutBox"></div>
+      <div data-pk="play" data-pane="goals"><div id="homeExtra"></div></div>
+      <div data-pk="play" data-pane="maps"><div class="sectitle">Map pool</div><div class="maptiles" id="poolPreview"></div></div>
     </div>
-
     <div id="playVetoArea" style="display:none">
       <div class="turnline" id="turnLine"></div>
       <div class="maptiles" id="vetoTiles"></div>
@@ -498,7 +515,8 @@ button:active:not(:disabled){transform:scale(.97);filter:brightness(1.12)}
 
     <div class="teamcalls" id="teamCalls"></div>
     <div class="map-box" id="playMapBox" style="display:none"><svg id="playSvg" viewBox="0 0 1374 1196" preserveAspectRatio="xMidYMid meet"></svg><div class="killfeed" id="killFeed"></div><div class="calltoasts" id="callToasts"></div></div>
-    <div class="goalcard" id="buyPanel" style="display:none"></div>
+    <div class="goalcard" id="liveRoster" data-pk="rnd" data-pane="players" style="display:none"></div>
+    <div class="goalcard" id="buyPanel" data-pk="rnd" data-pane="buys" style="display:none"></div>
     <div class="iglov" id="iglOv" style="display:none"></div>
     <div class="evlog" id="evLog" style="display:none"></div>
 
@@ -573,7 +591,9 @@ function lineClear(a,b,grid,tol){
     if(cx<0||cy<0||cx>=NAV_W||cy>=NAV_H||!grid[cy*NAV_W+cx]){bad++;if(bad>tol)return false;}else bad=0;}
   return true;
 }
-function losClear(a,b){return lineClear(a,b,navRaw,2);}
+// line of sight: thin walls must block it (a wall can be only 1-3 cells thick), but single stray blocked cells inside open rooms are ignored
+const navLos=(()=>{ const a=Uint8Array.from(navRaw); for(let y=1;y<NAV_H-1;y++)for(let x=1;x<NAV_W-1;x++){ const i=y*NAV_W+x; if(navRaw[i])continue; let nb=0; for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){ if((dx||dy)&&!navRaw[(y+dy)*NAV_W+x+dx])nb++; } if(nb===0)a[i]=1; } return a; })();
+function losClear(a,b){return lineClear(a,b,navLos,0);}
 function astarCells(sx,sy,ex,ey){
   const W=NAV_W,N=W*NAV_H,g=new Float32Array(N).fill(1e9),from=new Int32Array(N).fill(-1),closed=new Uint8Array(N);
   const heap=[],f=new Float32Array(N);
@@ -980,7 +1000,8 @@ function renderRoster(){
   const tip=mkDiv('squadtip'); tip.textContent=missing.length?'Missing a natural '+missing.join(', ')+'. Check the Market.':'Balanced lineup: every role has a natural player.';
   wrap.insertBefore(tip,wrap.children[1]);
   const bench=roster.market.filter(p=>p.owned&&!roster.slots.includes(p.id));
-  wrap.appendChild(mkDiv('sectitle','Bench'+(bench.length?'':' — empty')));
+   wrap.appendChild(mkDiv('sectitle','Bench'+(bench.length?'':' — empty')));
+ const benchStart=wrap.children.length-1;
   bench.forEach(p=>{
     const card=playerCard(p); const row=mkDiv('mrow');
     row.appendChild(mkDiv('owned','Put in slot'));
@@ -989,8 +1010,10 @@ function renderRoster(){
     card.appendChild(row);
     const sell=document.createElement('button'); sell.className='tbtn sellb'; const val=Math.round(p.cost*0.6);
     sell.textContent='Sell for '+val.toLocaleString(); sell.onclick=()=>{ roster.money+=val; roster.market=roster.market.filter(x=>x.id!==p.id); saveRoster(); renderRoster(); };
-    card.appendChild(sell); wrap.appendChild(card);
-  });
+     card.appendChild(sell); wrap.appendChild(card);
+ });
+ [...wrap.children].forEach((ch,ix)=>{ ch.dataset.pk='sq'; ch.dataset.pane=ix>=benchStart?'bench':'five'; });
+ paneTabs(wrap,[['five','Lineup'],['bench','Bench']],'sq');
 }
 let marketFilter='All', marketSort='rating';
 
@@ -1010,13 +1033,13 @@ function renderStats(){
   const Hh2=roster.heat[statHeat]||{}, mx=Math.max(1,...Object.values(Hh2));
   const cells=Object.entries(Hh2).map(([k,v])=>{ const [cx,cy]=k.split(',').map(Number); return `<rect x="${cx*40}" y="${cy*40}" width="40" height="40" rx="8" fill="${statHeat==='k'?'#3ddc84':'#ff4d4d'}" opacity="${(0.2+0.65*v/mx).toFixed(2)}"/>`; }).join('');
   const pl=roster.market.filter(p=>p.owned&&p.career&&p.career.maps).sort((a,b)=>b.career.rsum/b.career.maps-a.career.rsum/a.career.maps);
-  box.innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${kp(H.length,'MATCHES')}${kp(w+'-'+(H.length-w),'W-L')}${kp(Math.round(rs/ra*100)+'%','ROUNDS WON')}${kp(avg,'AVG RATING')}</div>
+    box.innerHTML=`<div data-pk="stats" data-pane="over"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${kp(H.length,'MATCHES')}${kp(w+'-'+(H.length-w),'W-L')}${kp(Math.round(rs/ra*100)+'%','ROUNDS WON')}${kp(avg,'AVG RATING')}</div>
     <div class="sectitle">Team rating · last ${R.length} matches <span style="color:#5ee08a">● win</span> <span style="color:#ff5a5a">● loss</span></div>${chart}
     <div class="sectitle">Round win rate</div>${Object.entries(A.side).map(([k,v])=>bar(k+' side',v)).join('')}${Object.entries(A.buy).map(([k,v])=>bar(k,v)).join('')}
-    <div class="sectitle">Heatmap</div><div class="chips"><button class="chip2 ${statHeat==='k'?'on':''}" data-h="k">Where we get kills</button><button class="chip2 ${statHeat==='d'?'on':''}" data-h="d">Where we die</button></div>
+    </div><div data-pk="stats" data-pane="heat"><div class="sectitle">Heatmap</div><div class="chips"><button class="chip2 ${statHeat==='k'?'on':''}" data-h="k">Where we get kills</button><button class="chip2 ${statHeat==='d'?'on':''}" data-h="d">Where we die</button></div>
     <svg viewBox="0 0 1374 1196" style="width:100%;border-radius:10px;margin-top:8px;background:#000"><image href="${IMG_HREF}" x="0" y="0" width="1374" height="1196" preserveAspectRatio="none"/>${cells}</svg>
-    <div class="sectitle">Players</div><div class="rcard"><table class="sb" style="width:100%"><tr><th>Player</th><th>Maps</th><th>K/D</th><th>Rating</th><th>OVR</th></tr>${pl.map(p=>`<tr><td class="tl">${p.name}</td><td>${p.career.maps}</td><td>${(p.career.k/Math.max(1,p.career.d)).toFixed(2)}</td><td>${(p.career.rsum/p.career.maps).toFixed(2)}</td><td>${ovr(p)}</td></tr>`).join('')}</table></div>`;
-  box.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{statHeat=b.dataset.h;renderStats();});
+    </div><div data-pk="stats" data-pane="players"><div class="rcard"><table class="sb" style="width:100%"><tr><th>Player</th><th>Maps</th><th>K/D</th><th>Rating</th><th>OVR</th></tr>${pl.map(p=>`<tr><td class="tl">${p.name}</td><td>${p.career.maps}</td><td>${(p.career.k/Math.max(1,p.career.d)).toFixed(2)}</td><td>${(p.career.rsum/p.career.maps).toFixed(2)}</td><td>${ovr(p)}</td></tr>`).join('')}</table></div></div>`;
+    box.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{statHeat=b.dataset.h;renderStats();}); paneTabs(box,[['over','Overview'],['heat','Heatmap'],['players','Players']],'stats');
 }
 // ---- training ----
 function grantXP(p,xp,focus){ p.xp=(p.xp||0)+xp; let msg='';
@@ -1026,7 +1049,7 @@ function grantXP(p,xp,focus){ p.xp=(p.xp||0)+xp; let msg='';
   saveRoster(); return msg; }
 function drillShell(title,sub){ const o=document.createElement('div'); o.style.cssText='position:fixed;inset:0;z-index:95;background:rgba(5,8,12,.96);display:flex;flex-direction:column;align-items:center;padding:16px;color:#fff;gap:10px;overflow-y:auto;padding-bottom:40px';
   o.innerHTML=`<div style="font:800 24px 'Barlow Condensed',sans-serif">${title}</div><div class="note" id="dSub">${sub}</div><div id="dBody" style="width:100%;max-width:520px"></div>`; document.body.appendChild(o); return o; }
-function drillEnd(o,p,xp,focus,line){ const msg=grantXP(p,xp,focus); roster.trained[p.id]=1; saveRoster();
+function drillEnd(o,p,xp,focus,line){ xp+=coachBonus(); const msg=grantXP(p,xp,focus); roster.trained[p.id]=1; saveRoster();
   o.querySelector('#dBody').innerHTML=`<div class="rcard" style="text-align:center"><div style="font:800 22px 'Barlow Condensed',sans-serif">${line}</div><div style="margin:8px 0">+${xp} XP ${focus.toUpperCase()}${msg}</div><button class="bigbtn" id="dDone">Done</button></div>`;
   o.querySelector('#dDone').onclick=()=>{ o.remove(); renderTrain(); }; }
 function aimLab(p){ const o=drillShell('🎯 Aim Lab · '+p.name,'Click the targets — 20 seconds'); const body=o.querySelector('#dBody');
@@ -1093,7 +1116,8 @@ function renderMarket(){
   const ms=document.getElementById('mSort'); ms.value=marketSort; ms.onchange=()=>{marketSort=ms.value;renderMarket();};
   document.getElementById('mRefresh').onclick=()=>{ if(roster.money<500)return; roster.money-=500;
     roster.market=[...roster.market.filter(p=>p.owned),...newMarket()]; saveRoster(); renderMarket(); };
-  renderTrade();
+    renderClub(); renderTrade(); paneTabs(document.getElementById('marketPage'),[['buy','Buy'],['club','Club'],['trade','Trade']],'mkt');
+
   const wrap=document.getElementById('marketCards'); wrap.innerHTML='';
   let list=roster.market.filter(p=>!p.owned&&(marketFilter==='All'||p.bestRole===marketFilter));
   list.sort(marketSort==='rating'?(a,b)=>ovr(b)-ovr(a):marketSort==='priceLow'?(a,b)=>a.cost-b.cost:(a,b)=>b.cost-a.cost);
@@ -1526,14 +1550,19 @@ function chooseStrat(side,igl,mem,oppMem,buyType){
 function aggFor(name,role){ return Math.min(1.45,Math.max(0.65,0.7+((String(name)).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(role==='Entry'?0.2:(role==='Lurker'||role==='AWP')?-0.15:0))); }
 function wpick(items,wf){ const w=items.map(wf), tot=w.reduce((a,b)=>a+b,0); let r=Math.random()*tot; for(let i=0;i<items.length;i++){ r-=w[i]; if(r<=0)return items[i]; } return items[items.length-1]; }
 function setupT(plan,info){
-  const lean=(plan&&plan.site)||(Math.random()<0.5?'A':'B'), eco=plan&&plan.speed==='fast', sA=['A Ramp','Palace'], sB=['Apps'], names=['A Ramp','Palace','Mid','Apps'];
-  return [0,1,2,3,4].map(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role);
-    const k=wpick(names,n=>{ let w=1; const onLean=(lean==='A'?sA:sB).includes(n);
-      if(onLean)w*=eco?4:1.9; else if(n!=='Mid')w*=eco?0.25:0.8;
-      if(role==='Lurker'){ w*=n==='Mid'?2.4:onLean?0.35:1.6; } if(role==='AWP'){ w*=n==='Mid'?1.9:n==='Palace'?1.5:n==='Apps'?0.6:1; }
-      if(role==='Entry'&&onLean)w*=1.7; if(role==='Entry'&&n==='Mid')w*=0.6; return w; });
-    const c=CALLOUTS[k], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(k);
-    return snapPt({x:base.x+(Math.random()-0.5)*110,y:base.y+(Math.random()-0.5)*110}); });
+  const lean=(plan&&plan.site)||(Math.random()<0.5?'A':'B'), eco=plan&&plan.speed==='fast', fk=plan&&plan.fake;
+  const zones={L:lean==='A'?['A Ramp','Palace']:['Apps'],M:['Mid'],O:lean==='A'?['Apps']:['A Ramp','Palace']};
+  const LL={splitA:['Palace','Palace','A Ramp','Mid','Mid'],splitB:['Apps','Apps','Apps','Mid','Mid'],midB:['Mid','Mid','Mid','Apps','Apps'],palaceA:['Palace','Palace','Palace','A Ramp','A Ramp']};
+  if(plan&&LL[plan.layout]){ const lanes=LL[plan.layout].slice(), out=[], pr0={AWP:0,Lurker:1,Entry:2,Support:3,Anchor:4};
+    [0,1,2,3,4].sort((x,y)=>(pr0[info.roles[x]]??5)-(pr0[info.roles[y]]??5)).forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+((plan&&plan.aggr)||0);
+      let k=role==='AWP'?lanes.indexOf('Mid'):-1; if(k<0)k=Math.floor(Math.random()*lanes.length); const n=lanes.splice(k,1)[0], c=CALLOUTS[n], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(n);
+      out[i]=snapPt({x:base.x+(Math.random()-0.5)*110,y:base.y+(Math.random()-0.5)*110}); }); return out; }
+  const quota=eco?{L:4,M:1,O:0}:fk?{L:2,M:1,O:2}:{L:3,M:1,O:1}, pri={Entry:0,Support:1,Anchor:2,AWP:3,Lurker:4}, res=[];
+  [0,1,2,3,4].sort((x,y)=>(pri[info.roles[x]]??5)-(pri[info.roles[y]]??5)).forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+((plan&&plan.aggr)||0);
+    const zs=['L','M','O'].filter(z=>quota[z]>0)||['L'], zk=wpick(zs.length?zs:['L'],z=>{ let w=z==='L'?2:1; if(role==='Lurker')w*=z==='O'?3:z==='M'?2:0.3; if(role==='AWP')w*=z==='M'?2:1; if(role==='Entry'&&z==='L')w*=2; return w; });
+    quota[zk]--; const k=zones[zk][Math.floor(Math.random()*zones[zk].length)], c=CALLOUTS[k], fwd=Math.random()<Math.max(0,(ag-0.85)*0.5), base=fwd?c:waitSpot(k);
+    res[i]=snapPt({x:base.x+(Math.random()-0.5)*110,y:base.y+(Math.random()-0.5)*110}); });
+  return res;
 }
 function setupCT(plan,info){
   const A=SITE_HOLD.A,B=SITE_HOLD.B,id=(plan&&plan.id)||'std';
@@ -1542,7 +1571,7 @@ function setupCT(plan,info){
   // the call decides how many go where (so what the IGL says is what the team does); each player decides his own spot inside that split
   const Q=({std:{A:2,M:1,B:2},stackA:{A:3,M:1,B:1},stackB:{A:1,M:1,B:3},aggro:{A:1,M:3,B:1},passive:{A:2,M:1,B:2},midStack:{A:2,M:2,B:1}}[id]||{A:2,M:1,B:2}); const quota={...Q};
   const pri={Anchor:0,Support:1,AWP:2,Entry:3,Lurker:4}, order=[0,1,2,3,4].sort((a,b)=>(pri[info.roles[a]]??5)-(pri[info.roles[b]]??5)), used=new Set(), out=[];
-  order.forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0);
+  order.forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0)+((plan&&plan.aggr)||0);
     let pool=spots.filter(x=>!used.has(x)&&quota[x.s]>0); if(!pool.length)pool=spots.filter(x=>!used.has(x));
     const sp=wpick(pool,x=>{ let w=1; w*=x.f?Math.pow(Math.max(0.5,ag),2):Math.max(0.35,2.1-ag);
       if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2; return w; });
@@ -1576,7 +1605,7 @@ const LINEUPS={
 };
 function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,plans){
   plans=plans||{};
-  const coord={me:0.7+0.6*Math.min(1,iglMe/100),bot:0.7+0.6*Math.min(1,iglBot/100)};
+  const coord={me:0.7+0.6*Math.min(1,(60+(iglMe-60)*STAT_SCALE)/100),bot:0.7+0.6*Math.min(1,(60+(iglBot-60)*STAT_SCALE)/100)};
   const STEP=0.4,PLANT_T=3,DEFUSE_T=7,FUSE=40,MAXT=ROUND_LEN+FUSE+5,PR=110,CR=150;
   const attSide=attackerIsMe?'me':'bot', defSide=attackerIsMe?'bot':'me';
   const igl={me:iglMe,bot:iglBot};
@@ -1607,7 +1636,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   const know=(u,t)=>intel[u.side].filter(z=>z.by===u.key||t>=z.shareT);
   const engaged=new Set(), lastSight={}, events=[], deaths=[], killLog=[], acts={}, calls={me:[],bot:[]};
   const setAct=(u,a,t)=>{ if(u.act===a)return; u.act=a; (acts[u.key]=acts[u.key]||[]).push({t,a}); };
-  const util=[], smokes=[], bombLog=[], shots=[], hpLog={}, dmgDealt={}, dmgBy={}, reengage=[]; let curT=0, carrier=null, bombDrop=null, lastBombFetch=-99;
+  const reloads=[], util=[], smokes=[], bombLog=[], shots=[], hpLog={}, dmgDealt={}, dmgBy={}, reengage=[]; let curT=0, carrier=null, bombDrop=null, lastBombFetch=-99;
   const segCircle=(a,b,c,r)=>{const dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy||1;let k=((c.x-a.x)*dx+(c.y-a.y)*dy)/L2;k=Math.max(0,Math.min(1,k));return Math.hypot(a.x+dx*k-c.x,a.y+dy*k-c.y)<r;};
   const seeClear=(a,b)=>losClear(a,b)&&!smokes.some(sm=>curT>=sm.t&&curT<sm.t+sm.dur&&segCircle(a,b,sm,sm.r));
   const foesOf=u=>all.filter(e=>e.alive&&e.side!==u.side);
@@ -1616,7 +1645,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const dur=1.0+1.8*(u.stats.util/100), rad=150+0.9*u.stats.util; // better utility users blind wider and longer
     foesOf(u).forEach(e=>{ if(dist(e.pos,pt)<rad&&losClear(e.pos,pt)) e.blindUntil=t+0.8+dur; }); }
   const inv=u=>u.inv||(u.inv=u.stats.grenades?{smoke:0,flash:0,molly:0,he:0,...u.stats.grenades}:(()=>{ const g=u.stats.gear||0.6, sp=u.stats.role==='Support'?1:0; const R=x=>Math.random()<x?1:0; return g>=1?{smoke:1+sp,flash:2+sp,molly:R(0.7),he:R(0.5)}:g>=0.84?{smoke:sp,flash:1+sp,molly:0,he:R(0.3)}:g>=0.72?{smoke:0,flash:1,molly:0,he:0}:{smoke:0,flash:0,molly:0,he:0}; })());
-  const aggOf=u=>u._agg||(u._agg=Math.min(1.45,Math.max(0.65,0.7+((String(nameOf(u))).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(u.stats.role==='Entry'?0.2:(u.stats.role==='Lurker'||u.stats.role==='AWP')?-0.15:0))));
+  const aggOf=u=>u._agg||(u._agg=Math.min(1.45,Math.max(0.65,0.7+((String(nameOf(u))).split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%60)/100+(u.stats.role==='Entry'?0.2:(u.stats.role==='Lurker'||u.stats.role==='AWP')?-0.15:0)+((plans[u.side]&&plans[u.side].aggr)||0))));
+  all.forEach(u=>{ const c={...u.stats}; for(const k of ['aim','pos','util','clutch'])c[k]=60+(c[k]-60)*STAT_SCALE; c.igl=60+((c.igl||60)-60)*STAT_SCALE; u.stats=c; });
   all.forEach(u=>{ u.inv0={...inv(u)}; });
   const fires=[]; let pmDone=false;
   const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
@@ -1624,7 +1654,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const db=dmgBy[e.key]=dmgBy[e.key]||{}; db[o.key]=(db[o.key]||0)+real; (hpLog[e.key]=hpLog[e.key]||[]).push({t,hp:Math.max(0,e.hp)});
     if(e.hp<=0){ e.alive=false; e.deathT=t; e.queue=[]; deaths.push({t,side:e.side,pos:{...e.pos}});
       killLog.push({t,k:o.key,v:e.key,a:null,w:kind==='he'?'HE Grenade':'Molotov',hs:false,blind:false,kx:o.pos.x,ky:o.pos.y,vx:e.pos.x,vy:e.pos.y,hpLeft:Math.max(0,o.hp)});
-      events.push({t,x:e.pos.x,y:e.pos.y,side:o.side,text:nameOf(o)+(kind==='he'?' blows up ':' burns down ')+nameOf(e)}); } }
+      events.push({t,x:e.pos.x,y:e.pos.y,side:o.side,text:nameOf(o)+(kind==='he'?' blows up ':' burns down ')+nameOf(e)}); utilDead.set(e,t); enforceDeaths([e],null); } }
   function throwMolly(u,pt,t){ pt=snapPt(pt); util.push({t,type:'molly',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y}); fires.push({t:t+0.8,x:pt.x,y:pt.y,r:75,dur:7,o:u}); }
   function throwHE(u,pt,t){ pt=snapPt(pt); util.push({t,type:'he',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
     foesOf(u).forEach(e=>{ const d=dist(e.pos,pt); if(d<170&&losClear(e.pos,pt))utilHit(u,e,98*(1-d/170),t+0.8,'he'); }); }
@@ -1653,13 +1683,14 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       if(dist(z.pos,x.pos)<350 && seeClear(z.pos,y.pos) && Math.random()<z.stats.util/170) return z; }
     return null;
   }
-  function resolve(a,b,t,trader){
+  function resolveCore(a,b,t,trader,cap,D){
     const sa=cmdAt(a,t), sb=cmdAt(b,t);
     const nA=teamOf(a.side).length, nB=teamOf(b.side).length;
     let eA=a.stats.aim*0.55+a.stats.pos*0.30+(nA<nB?a.stats.clutch*0.15:0);
     let eB=b.stats.aim*0.55+b.stats.pos*0.30+(nB<nA?b.stats.clutch*0.15:0);
     eA*=1+((a.stats.clutch-60)/100)*(nA===1?0.35:nA<nB?0.2:0.06); eB*=1+((b.stats.clutch-60)/100)*(nB===1?0.35:nB<nA?0.2:0.06); // composure under pressure
     eA+=a.stats.util*0.28; eB+=b.stats.util*0.28; // flash-peeks, jiggle timing and grenade use inside fights
+    eA=55+(eA-55)*STAT_K; eB=55+(eB-55)*STAT_K; // diminishing returns: elite players still lose fights
     const bonus=s=>s.cmd==='kill'?1.3:s.cmd==='hold'?1.15:1;
     eA*=bonus(sa); eB*=bonus(sb);
     const dd=dist(a.pos,b.pos);
@@ -1677,7 +1708,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     if(a.blindUntil>t)eA*=0.4; if(b.blindUntil>t)eB*=0.4;
     eA*=coord[a.side]; eB*=coord[b.side];
     if(trader===a){eA*=1.25;nA_.push('trade');} if(trader===b){eB*=1.25;nB_.push('trade');}
-    eA*=(0.9+Math.random()*0.2); eB*=(0.9+Math.random()*0.2);
+    eA*=(0.85+Math.random()*0.3); eB*=(0.85+Math.random()*0.3);
     const mkS=(u,e,st)=>{ const W=WSTAT[u.stats.weapon]||WSTAT['AK-47'], holding=st.cmd!=='move';
       const react=0.2+(1-u.stats.aim/100)*0.3-(teamOf(u.side).length===1?(u.stats.clutch-60)*0.0015:0)-(u.hearAt&&curT-u.hearAt.t<4?0.09:0)+Math.random()*0.12-(holding?0.07:0)+(u.blindUntil>t?0.9:0)+(u.cool>t?0.25:0)-(trader===u?0.06:0);
       return {u,e,W,holding,next:Math.max(0.05,react),n:0}; };
@@ -1686,6 +1717,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     while(true){
       const S=A.next<=B.next?A:B; if(S.next>MAXD)break;
       const T=S.opp, tt=t+S.next, W=S.W, spray=W.auto&&dd<420;
+      if((cap[S.u.key]!=null&&tt>=cap[S.u.key])||(cap[T.u.key]!=null&&tt>=cap[T.u.key]))break; // somebody here is already dead by then
       let acc=(0.05+0.0068*S.e)*W.acc*Math.max(0.35,1-dd/W.range);
       if(!S.holding) acc*=W.run;
       if(spray) acc*=Math.max(0.45,1-0.07*S.n);
@@ -1699,16 +1731,16 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         dmg=W.dmg*(hs?4:legs?0.75:1);
         if(T.u.armor&&!legs&&(!hs||T.u.helmet)) dmg*=W.pen;
         dmg=Math.round(dmg*(0.93+Math.random()*0.14));
-        const real=Math.min(T.u.hp,dmg); T.u.hp-=dmg;
+        const real=Math.min(T.u.hp,dmg); T.u.hp-=dmg; D.hpd.set(T.u,(D.hpd.get(T.u)||0)+dmg);
         dmgDealt[S.u.key]=(dmgDealt[S.u.key]||0)+real;
-        const db=dmgBy[T.u.key]=dmgBy[T.u.key]||{}; db[S.u.key]=(db[S.u.key]||0)+real;
-        (hpLog[T.u.key]=hpLog[T.u.key]||[]).push({t:tt,hp:Math.max(0,T.u.hp)});
+        const db=dmgBy[T.u.key]=dmgBy[T.u.key]||{}; db[S.u.key]=(db[S.u.key]||0)+real; D.dd.push([S.u.key,T.u.key,real]);
+        D.rec((hpLog[T.u.key]=hpLog[T.u.key]||[]),{t:tt,hp:Math.max(0,T.u.hp)});
       }
       const mo=hit?0:(Math.random()<0.5?-1:1)*(16+Math.random()*30);
-      shots.push({t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
+      D.rec(shots,{t:tt,k:S.u.key,x1:S.u.pos.x,y1:S.u.pos.y,x2:T.u.pos.x,y2:T.u.pos.y,mo,hit,hs,dmg,v:T.u.key});
       S.n++; S.next+=spray?W.cyc:W.tap; S.u.lastShot=tt;
       if(S.u.ammo==null)S.u.ammo=W.mag; S.u.ammo--;
-      if(S.u.ammo<=0){ S.u.ammo=W.mag; S.next+=W.rel; events.push({t:tt,x:S.u.pos.x,y:S.u.pos.y,side:S.u.side,note:true,text:nameOf(S.u)+' is out of ammo — reloading'}); }
+      if(S.u.ammo<=0){ S.u.ammo=W.mag; S.next+=W.rel; D.rec(reloads,{k:S.u.key,t0:tt,t1:tt+W.rel}); D.rec(events,{t:tt,x:S.u.pos.x,y:S.u.pos.y,side:S.u.side,note:true,text:nameOf(S.u)+' is out of ammo — reloading'}); }
       if(T.u.hp<=0){ killer=S.u; victim=T.u; kShot={t:tt,hs,w:S.u.stats.weapon}; break; }
     }
     a.aimAt={x:b.pos.x,y:b.pos.y}; a.aimUntil=t+MAXD; b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+MAXD;
@@ -1723,11 +1755,11 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     const w=killer, l=victim, aWins=w===a, tk=kShot.t;
     const notes=aWins?nA_:nB_; w.cool=tk+0.6;
     if(!trader&&((w===a&&sa.cmd==='kill')||(w===b&&sb.cmd==='kill')))notes.push('held the angle');
-    l.alive=false; l.deathT=tk; l.queue=[];
+    l.alive=false; l.deathT=tk; l.queue=[]; D.revive.push(l); D.reviveT.set(l,tk);
     const dbv=dmgBy[l.key]||{}; let asK=Object.keys(dbv).filter(k=>k!==w.key&&dbv[k]>=41).sort((x,y)=>dbv[y]-dbv[x])[0];
     if(!asK){ const asW=aWins?asA:asB; if(asW)asK=asW.key; }
     const wpn=kShot.w||(w.id[0]==='T'?'AK-47':'M4A1-S');
-    killLog.push({t:tk,k:w.key,v:l.key,a:asK||null,w:wpn,hs:kShot.hs,blind:!!(l.blindUntil>t),kx:w.pos.x,ky:w.pos.y,vx:l.pos.x,vy:l.pos.y,hpLeft:Math.max(0,w.hp)});
+    D.rec(killLog,{t:tk,k:w.key,v:l.key,a:asK||null,w:wpn,hs:kShot.hs,blind:!!(l.blindUntil>t),kx:w.pos.x,ky:w.pos.y,vx:l.pos.x,vy:l.pos.y,hpLeft:Math.max(0,w.hp)});
     l.face=Math.atan2(w.pos.y-l.pos.y,w.pos.x-l.pos.x);
     const penC={'AWP':0.85,'SSG 08':0.6,'AK-47':0.45,'Desert Eagle':0.45,'M4A4':0.4,'M4A1-S':0.35,'Galil AR':0.35,'FAMAS':0.3}[wpn]||0.12;
     const ang=Math.atan2(l.pos.y-w.pos.y,l.pos.x-w.pos.x);
@@ -1736,34 +1768,63 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     if(behind&&Math.random()<penC*0.35){
       const W2=WSTAT[wpn]||WSTAT['AK-47'], hs2=Math.random()<0.2;
       let d2=W2.dmg*(hs2?4:1)*0.75; if(behind.armor&&(!hs2||behind.helmet))d2*=W2.pen; d2=Math.round(d2);
-      const real=Math.min(behind.hp,d2); behind.hp-=d2; dmgDealt[w.key]=(dmgDealt[w.key]||0)+real;
-      (hpLog[behind.key]=hpLog[behind.key]||[]).push({t:tk,hp:Math.max(0,behind.hp)});
-      shots.push({t:tk,k:w.key,x1:l.pos.x,y1:l.pos.y,x2:behind.pos.x,y2:behind.pos.y,mo:0,hit:true,hs:hs2,dmg:d2,v:behind.key});
+      const real=Math.min(behind.hp,d2); behind.hp-=d2; D.hpd.set(behind,(D.hpd.get(behind)||0)+d2); dmgDealt[w.key]=(dmgDealt[w.key]||0)+real; D.dd.push([w.key,behind.key,real]);
+      D.rec((hpLog[behind.key]=hpLog[behind.key]||[]),{t:tk,hp:Math.max(0,behind.hp)});
+      D.rec(shots,{t:tk,k:w.key,x1:l.pos.x,y1:l.pos.y,x2:behind.pos.x,y2:behind.pos.y,mo:0,hit:true,hs:hs2,dmg:d2,v:behind.key});
       if(behind.hp<=0){
-        behind.alive=false; behind.deathT=tk; behind.queue=[]; deaths.push({t:tk,side:behind.side,pos:{...behind.pos}});
-        killLog.push({t:tk,k:w.key,v:behind.key,a:null,w:wpn,hs:hs2,coll:true,kx:w.pos.x,ky:w.pos.y,vx:behind.pos.x,vy:behind.pos.y});
-        events.push({t:tk,x:behind.pos.x,y:behind.pos.y,side:w.side,text:nameOf(w)+' collateral on '+nameOf(behind)});
+        behind.alive=false; behind.deathT=tk; behind.queue=[]; D.revive.push(behind); D.reviveT.set(behind,tk); D.rec(deaths,{t:tk,side:behind.side,pos:{...behind.pos}});
+        D.rec(killLog,{t:tk,k:w.key,v:behind.key,a:null,w:wpn,hs:hs2,coll:true,kx:w.pos.x,ky:w.pos.y,vx:behind.pos.x,vy:behind.pos.y});
+        D.rec(events,{t:tk,x:behind.pos.x,y:behind.pos.y,side:w.side,text:nameOf(w)+' collateral on '+nameOf(behind)});
       }
     }
-    deaths.push({t:tk,side:l.side,pos:{...l.pos}});
-    events.push({t:tk,x:l.pos.x,y:l.pos.y,side:w.side,text:nameOf(w)+' eliminates '+nameOf(l)+' ('+Math.max(0,w.hp)+' HP left)'+(notes.length?' — '+notes.join(', '):'')});
-    return {w,l};
+    D.rec(deaths,{t:tk,side:l.side,pos:{...l.pos}});
+    D.rec(events,{t:tk,x:l.pos.x,y:l.pos.y,side:w.side,text:nameOf(w)+' eliminates '+nameOf(l)+' ('+Math.max(0,w.hp)+' HP left)'+(notes.length?' — '+notes.join(', '):'')});
+    return {w,l,tk};
   }
 
-  function tradeChain(w,l,t){
+
+  // ---- fights can overlap (two enemies can shoot one player), and every fight can be undone and re-run if a participant turns out to be dead already ----
+  const duelLog=[], utilDead=new Map(); let enforceDepth=0;
+  function undoDuel(D){ if(D.undone)return; D.undone=true; D.children.forEach(undoDuel);
+    for(const [arr,obj] of D.pushed){ const i=arr.indexOf(obj); if(i>=0)arr.splice(i,1); }
+    D.hpd.forEach((v,u)=>{ u.hp+=v; });
+    for(const [sk,vk,real] of D.dd){ dmgDealt[sk]=(dmgDealt[sk]||0)-real; if(dmgBy[vk]&&dmgBy[vk][sk]!=null)dmgBy[vk][sk]-=real; }
+    const i0=duelLog.indexOf(D); if(i0>=0)duelLog.splice(i0,1);
+    D.revive.forEach(u=>{ let dt=utilDead.has(u)?utilDead.get(u):null; for(const Dk of duelLog){ if(Dk.undone||!Dk.reviveT.has(u))continue; const x=Dk.reviveT.get(u); if(dt==null||x<dt)dt=x; }
+      if(dt==null){ u.alive=true; u.deathT=undefined; } else { u.alive=false; u.deathT=dt; } }); // stays dead if another fight (or a grenade) also killed him
+    D.ammo.forEach(([u,v])=>{ u.ammo=v; }); D.cool.forEach(([u,v])=>{ u.cool=v; });
+    const i=duelLog.indexOf(D); if(i>=0)duelLog.splice(i,1); }
+  function enforceDeaths(list,exceptD){
+    if(enforceDepth>=4)return; enforceDepth++;
+    for(const u of list.slice()){ if(u.alive||u.deathT==null)continue; const td=u.deathT;
+      for(const D2 of duelLog.slice()){ if(D2===exceptD||D2.undone)continue;
+        const bad=D2.pushed.some(([arr,o])=>(arr===shots||arr===killLog)&&(o.k===u.key||o.v===u.key)&&o.t>td+0.01); if(!bad)continue;
+        const p2=D2.parent, a2=D2.a, b2=D2.b, t2=D2.t0, tr2=D2.trader; undoDuel(D2); const r2=resolve(a2,b2,t2,tr2,p2); if(r2.w&&!p2)tradeChain(r2.w,r2.l,t2,r2.D); } }
+    enforceDepth--; }
+  function resolve(a,b,t,trader,parentD){
+    const cap={}; all.forEach(x=>{ if(!x.alive&&x.deathT!=null)cap[x.key]=x.deathT; });
+    const D={a,b,t0:t,trader,pushed:[],hpd:new Map(),dd:[],revive:[],reviveT:new Map(),children:[],ammo:[[a,a.ammo],[b,b.ammo]],cool:[[a,a.cool],[b,b.cool]],parent:parentD||null};
+    D.rec=(arr,obj)=>{ arr.push(obj); D.pushed.push([arr,obj]); };
+    duelLog.push(D); if(parentD)parentD.children.push(D);
+    const r=resolveCore(a,b,t,trader,cap,D); r.D=D;
+    // anyone killed here can't have fired or scored in another fight after his death: re-run those fights without him
+    enforceDeaths(D.revive,D);
+    return r; }
+
+  function tradeChain(w,l,t,pD){
     for(let d=0;d<2;d++){
       const cands=all.filter(z=>z.alive&&z.side===l.side&&dist(z.pos,w.pos)<450&&seeClear(z.pos,w.pos)&&!engaged.has(z.key+'|'+w.key)&&!engaged.has(w.key+'|'+z.key));
       if(!cands.length||!w.alive)return;
       cands.sort((p,q)=>q.stats.pos-p.stats.pos);
       const z=cands[0]; if(Math.random()>0.55+z.stats.pos/250)return;
       engaged.add(z.key+'|'+w.key);
-      const r=resolve(z,w,(l.deathT||t)+0.2,z);
+      const r=resolve(z,w,(l.deathT||t)+0.2,z,pD);
       if(r.w!==z)return;
       w=r.w; l=r.l;
     }
   }
 
-  function pathQ(u,to){u.queue=routePts(u.pos,to,0.3).map(p=>({x:p.x,y:p.y})); u.jiggling=false; u.home=null; u.holdFace=null;}
+  function pathQ(u,to){u.queue=routePts(u.pos,to,u.noVia?0:0.3).map(p=>({x:p.x,y:p.y})); u.jiggling=false; u.home=null; u.holdFace=null;}
   // ---- individual decision-making: the strat is a plan, not a script ----
   function breakOff(u,t,why,dest,label){
     u.broke=true; u.auto=true; if(label)setAct(u,label,t);
@@ -1772,15 +1833,20 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   }
   function think(u,t){
     if(u.saving||u.retakeAll) return;
-    const sense=Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100), isAtt=u.side===attSide;
+    const sense=Math.max(0.5,Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100)), isAtt=u.side===attSide;
     // run by default; with enemies suspected nearby, players with the sense for it shift-walk (slower, but silent)
     if(u.walkPref==null)u.walkPref=Math.random()<0.1+sense*0.8;
     u.walk=!!(u.walkPref&&!planted&&!u.saving&&!(isAtt&&state[u.side].committed)&&know(u,t).some(z=>t-z.t<12&&dist(z.pos,u.pos)<520));
     const mates=teamOf(u.side), foes=teamOf(u.side==='me'?'bot':'me');
+    if(u===carrier&&!planted&&mates.length>2&&(u.stickT||-99)<t-8&&!mates.some(z=>z!==u&&dist(z.pos,u.pos)<330)){ u.stickT=t; const mt=mates.filter(z=>z!==u).sort((a,b)=>dist(a.pos,u.pos)-dist(b.pos,u.pos))[0];
+      breakOff(u,t,'is carrying the bomb and moves back to the team',{x:mt.pos.x,y:mt.pos.y},'sticking with the team'); return; }
     // 1) round is lost -> save the weapon (keeps it for next round's economy)
-    if(mates.length<=2 && foes.length-mates.length>=2){
+    if(mates.length<=2 && foes.length-mates.length>=2 && !u.noSave){
       const late=isAtt?(!planted&&t>ROUND_LEN-25):(planted&&(40-(t-plantTime))<14);
-      if(late&&Math.random()<0.25+sense*0.6){ u.saving=true; breakOff(u,t,'saves his weapon — the round is gone',isAtt?TSPAWN:CTSPAWN,'saving'); return; }
+      if(late&&!state[u.side].saveCalled){ state[u.side].saveCalled=true; events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:'IGL calls it: "save, save"'}); }
+      const own=(u.stats.aim*0.6+u.stats.clutch*0.25+u.stats.pos*0.15)/100+(Math.random()-0.5)*(1-sense)*0.5+(aggOf(u)-1)*0.15+(u.hp-70)/400, need=0.32+0.17*(foes.length/mates.length-1);
+      if(late&&own>need&&u.hp>35){ u.noSave=true; events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' ignores the save call — thinks he can take the '+mates.length+'v'+foes.length}); setAct(u,'goes for the play',t); }
+      else if(late&&Math.random()<0.25+sense*0.6){ u.saving=true; breakOff(u,t,'saves his weapon — the round is gone',isAtt?TSPAWN:CTSPAWN,'saving'); return; }
     }
     const idle=(t>u.spEnd||u.broke)&&(!u.queue.length||u.jiggling);
     if(t<=u.spEnd&&!u.broke) setAct(u,u.side==='me'?'following the call':(isAtt?'default':'setting up'),t);
@@ -1823,6 +1889,8 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
     // 2c) risk read: seeing a group while alone -> regroup with a teammate instead of walking in (worse game sense = worse read)
     if(!u.regroupT||t>u.regroupT){ const seen=new Set(know(u,t).filter(z=>t-z.t<6&&z.w>=0.9&&dist(z.pos,u.pos)<430).map(z=>Math.round(z.pos.x/70)+','+Math.round(z.pos.y/70))).size;
       const sup=mates.filter(z=>z!==u&&dist(z.pos,u.pos)<340).length, perceived=seen+(Math.random()-0.5)*(1-sense)*2.2;
+      const nsite=dist(u.pos,PLANTS.A)<dist(u.pos,PLANTS.B)?'A':'B';
+      if(perceived>sup+1.2&&!isAtt&&u!==carrier&&dist(u.pos,PLANTS[nsite])<420&&Math.random()<0.25+sense*0.55){ u.regroupT=t+8; breakOff(u,t,'sees a group at '+nsite+' and falls back deeper on the site, waiting for the rotation',SITE_HOLD[nsite][1+Math.floor(Math.random()*2)],'falling back deeper'); return; }
       if(perceived>sup+1.2&&u!==carrier&&mates.length>1&&Math.random()<0.25+sense*0.55){ const mt=mates.filter(z=>z!==u).sort((a,b)=>dist(a.pos,u.pos)-dist(b.pos,u.pos))[0]; u.regroupT=t+8;
         breakOff(u,t,'sees a group ahead and regroups with '+nameOf(mt),{x:mt.pos.x,y:mt.pos.y},'regrouping'); return; } }
     // 2d) last one alive on the attack: strong clutch players play the clock, weak ones just run in
@@ -1849,7 +1917,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       const moved=a.lastP?dist(a.pos,a.lastP):0; a.lastP={x:a.pos.x,y:a.pos.y};
       if(moved<25||a.saving||a.walk||a.jiggling)continue; // walking and small shifts are silent
       for(const b of all){ if(!b.alive||b.side===a.side)continue;
-        if(dist(a.pos,b.pos)<480&&!losClear(a.pos,b.pos)&&Math.random()<0.45){ addSight(b.side,a.pos,t,0.4,b.key); b.hearAt={pos:{x:a.pos.x,y:a.pos.y},t};
+        if(dist(a.pos,b.pos)<620&&!losClear(a.pos,b.pos)&&Math.random()<0.5){ addSight(b.side,a.pos,t,0.4,b.key); b.hearAt={pos:{x:a.pos.x,y:a.pos.y},t};
         if(!b.queue.length||b.jiggling){ b.aimAt={x:a.pos.x,y:a.pos.y}; b.aimUntil=t+2; }
         else if(!state[b.side].committed&&b.auto&&(b.listenT||-9)<t-5&&dist(a.pos,b.pos)<380&&Math.random()<0.15+Math.min(1,(b.stats.pos*0.75+(b.stats.igl||50)*0.25)/100)*0.5){ b.listenT=t; b.wait=t+1.1; setAct(b,'stops to listen',t); } } }
     }
@@ -1874,7 +1942,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
       else if(!isAtt&&!planted){ const hunt=bl.find(b=>t-b.t<20), pair=hunt?free.slice().sort((a,b)=>dist(a.pos,hunt.pos)-dist(b.pos,hunt.pos)).slice(0,2):[];
         free.forEach((u,i)=>{ if(t-(u.cleanT||-99)<8)return; u.cleanT=t;
           if(pair.length===2&&pair.includes(u)){ const first=pair[0]===u; pathQ(u,{x:hunt.pos.x+(first?-60:60),y:hunt.pos.y}); u.wait=t+(first?0:0.8); setAct(u,'clears the last spot together',t); }
-          else { const sn=(i%2)?'A':'B'; pathQ(u,SITE_HOLD[sn][Math.floor(i/2)%4]); setAct(u,'holds '+sn+' tight',t); } }); } }
+          else { const hotS=bl.length?(dist(bl[0].pos,PLANTS.A)<dist(bl[0].pos,PLANTS.B)?'A':'B'):null, oS=hotS==='A'?'B':'A';
+            const lone=hotS?free.slice().sort((x,y)=>dist(x.pos,PLANTS[oS])-dist(y.pos,PLANTS[oS]))[0]:null;
+            const sn=hotS?(u===lone?oS:hotS):(dist(u.pos,PLANTS.A)<dist(u.pos,PLANTS.B)?'A':'B'); pathQ(u,SITE_HOLD[sn][Math.floor(i/2)%4]); setAct(u,'holds '+sn+' tight',t); } }); } }
     if(isAtt){
       if(!planted){
         if(!st.site&&plans[side]&&plans[side].site)st.site=plans[side].site;
@@ -1902,15 +1972,15 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const early=adv>=2&&t>=st.execT*0.6; // up two men: speed up, but not before the team is set
         const go=st.committed||t>=st.execT||early||t>ROUND_LEN*0.72;
         if(free.length&&go&&(free.length>=need||t>st.execT+8||t>ROUND_LEN*0.6||st.committed)){
-          if(!st.committed){st.committed=true;say(PLANTS[st.site].x,PLANTS[st.site].y,t<st.execT-2?'up a man, speeding it up — hitting '+st.site:'everyone set, hitting '+st.site);
+          if(!st.committed){st.committed=true;st.commitT=t;say(PLANTS[st.site].x,PLANTS[st.site].y,t<st.execT-2?'up a man, speeding it up — hitting '+st.site:'everyone set, hitting '+st.site);
             const L=LINEUPS[st.site], jit=(1-q)*60, ut=free.slice().sort((a,b)=>b.stats.util-a.stats.util), sm=L.smoke.filter((sp,i)=>i>0||intel[side].some(z=>t-z.t<25&&dist(z.pos,sp)<420)).sort(()=>Math.random()-0.5).slice(0,2+(Math.random()<0.35?1:0)), fs=L.flash.slice(), usedS=new Set(), usedF=new Set();
             ut.forEach(u=>{ if(!sm.length||usedS.has(u)||u===carrier)return; if(sched(u,'smoke',sm[0],t+0.5,t+16,470,jit+(1-u.stats.util/100)*100)){usedS.add(u);sm.shift();} });
             ut.forEach(u=>{ if(!fs.length||usedF.has(u))return; if(sched(u,'flash',fs[0],t+3,t+22,400,jit*0.6+(1-u.stats.util/100)*80)){usedF.add(u);fs.shift();} });
             ut.some(u=>inv(u).molly>0&&sched(u,'molly',L.molly[0],t+4,t+22,420,jit*0.5+20));
             ut.slice().reverse().some(u=>inv(u).he>0&&sched(u,'he',L.molly[1],t+6,t+24,430,25)); }
-          free.sort((a,b)=>b.stats.aim-a.stats.aim).forEach((u,i)=>{pathQ(u,SITE_HOLD[st.site][i%4]);u.wait=t+1.6+(u===carrier?2.4:0)+i*(0.25+(1-q)*1.6);setAct(u,'executing '+st.site,t);});
+          free.sort((a,b)=>b.stats.aim-a.stats.aim).forEach((u,i)=>{ if(u!==carrier&&u.stats.role==='Lurker'&&team.length>2&&dist(u.pos,PLANTS[st.site])>dist(u.pos,PLANTS[st.site==='A'?'B':'A'])&&Math.random()<0.7)return; pathQ(u,SITE_HOLD[st.site][i%4]);u.wait=t+1.6+(u===carrier?2.4:0)+i*(0.25+(1-q)*1.6);setAct(u,'executing '+st.site,t);});
         }
-        if(st.committed&&carrier&&carrier.alive&&carrier.side===side&&!carrier.queue.length&&dist(carrier.pos,PLANTS[st.site])>60){ pathQ(carrier,PLANTS[st.site]); }
+        if(st.committed&&carrier&&carrier.alive&&carrier.side===side&&!carrier.queue.length&&dist(carrier.pos,PLANTS[st.site])>60&&(team.length===1||team.some(z=>z!==carrier&&dist(z.pos,PLANTS[st.site])<320)||t>(st.commitT||0)+16)){ pathQ(carrier,PLANTS[st.site]); }
         if(bombDrop&&t-lastBombFetch>4){ const fr=team.filter(u=>!u.saving).sort((a,b)=>dist(a.pos,bombDrop)-dist(b.pos,bombDrop))[0]; if(fr){lastBombFetch=t; pathQ(fr,bombDrop); fr.broke=true; fr.auto=true;}
         }
         if(false){
@@ -1946,9 +2016,12 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
           if(q<0.5)want=Math.random()<0.5?team.length:Math.max(1,want-1);
           const keep=(q>0.55&&score(other)<0.3&&team.length>2)?1:0;
           let send=Math.max(0,Math.min(want-atSite,team.length-atSite-keep));
-          const cand=free.filter(u=>dist(u.pos,P)>=380).sort((a,b)=>dist(a.pos,P)-dist(b.pos,P)).slice(0,send);
+          const onOther=u=>dist(u.pos,PLANTS[other])<420, hearsOwn=u=>q>=0.4&&know(u,t).some(z=>t-z.t<10&&dist(z.pos,u.pos)<500);
+          const pool=free.filter(u=>dist(u.pos,P)>=380&&!hearsOwn(u)&&(u.stats.role!=='Anchor'||q<0.4)).sort((a,b)=>(onOther(a)-onOther(b))||(dist(a.pos,P)-dist(b.pos,P)));
+          const cand=pool.slice(0,send);
+          if(q>=0.4&&Math.random()>0.2&&team.filter(onOther).length-cand.filter(onOther).length<1){ const ix=cand.map(onOther).lastIndexOf(true); if(ix>=0)cand.splice(ix,1); }
           if(cand.length){st.lastRot=t;say(P.x,P.y,'IGL rotates '+cand.length+' to '+threat);
-            cand.forEach((u,i)=>{ if(Math.random()>0.6+Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100)*0.4){ setAct(u,'missed the call',t); events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' missed the rotate call'}); return; } pathQ(u,SITE_HOLD[threat][i%4]);u.wait=t+0.8+(100-u.stats.pos)/60;setAct(u,'rotating '+threat,t);});}
+            cand.forEach((u,i)=>{ if(Math.random()>0.85+Math.min(1,(u.stats.pos*0.75+(u.stats.igl||50)*0.25)/100)*0.15){ setAct(u,'missed the call',t); events.push({t,x:u.pos.x,y:u.pos.y,side:u.side,note:true,text:nameOf(u)+' missed the rotate call'}); return; } pathQ(u,SITE_HOLD[threat][i%4]);u.wait=t+0.8+(100-u.stats.pos)/60;setAct(u,'rotating '+threat,t);});}
         }
       }
     }
@@ -1987,7 +2060,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const rng=Math.max(rangeOf(cmdAt(m,t)),rangeOf(cmdAt(b,t)));
         if(d<rng){
           engaged.add(key);
-          const r=resolve(m,b,t,null); if(r.w)tradeChain(r.w,r.l,t);
+          const r=resolve(m,b,t,null); if(r.w)tradeChain(r.w,r.l,t,r.D);
         } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t,1,m.key);addSight('bot',m.pos,t,1,b.key);}
       }
     }
@@ -1999,7 +2072,10 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         const sc=cmdAt(u,t); if(sc.cmd==='support'&&sc.target){ u.threw=u.threw||{}; const k2=sc.target.x+','+sc.target.y; if(!u.threw[k2]){u.threw[k2]=1; throwFlash(u,sc.target,t);} } }
     }
     curT=t;
-    if(!carrier&&!bombDrop){ const at=all.filter(u=>u.side===attSide); carrier=at.find(u=>u.stats.role==='Support')||at.find(u=>u.stats.role!=='Lurker'&&u.stats.role!=='AWP')||at[0]; bombLog.push({t,c:carrier.key}); }
+    if(!carrier&&!bombDrop){ const at=all.filter(u=>u.side===attSide), fin=u=>{ try{ return posAt(u.sp,u.spEnd); }catch(e){ return u.pos; } };
+      const leanS=(plans[attSide]&&plans[attSide].site)||null, oS=leanS==='A'?'B':'A', onLean=u=>leanS&&dist(fin(u),PLANTS[leanS])<dist(fin(u),PLANTS[oS]);
+      const sc=u=>(u.stats.role==='Lurker'||u.stats.role==='AWP'?-3:u.stats.role==='Support'||u.stats.role==='Anchor'?1:0.8)+at.filter(z=>z!==u&&dist(fin(z),fin(u))<380).length*0.9+(onLean(u)?5:0); // carry the bomb where the team is
+      carrier=at.slice().sort((a,b)=>sc(b)-sc(a))[0]; carrier.noVia=true; bombLog.push({t,c:carrier.key}); }
     if(!planted){
       if(carrier&&!carrier.alive){ bombDrop={x:carrier.pos.x,y:carrier.pos.y}; carrier=null; bombLog.push({t,c:null,x:bombDrop.x,y:bombDrop.y}); }
       if(!carrier&&bombDrop){ const pk=all.filter(u=>u.alive&&u.side===attSide&&dist(u.pos,bombDrop)<45)[0]; if(pk){carrier=pk;bombDrop=null;bombLog.push({t,c:pk.key});} }
@@ -2031,7 +2107,10 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   endT=Math.max(endT,...killLog.map(k=>k.t),...shots.map(x=>x.t))+1.2;
   const myDead={},botDead={};
   all.forEach(u=>{if(u.deathT!=null)(u.side==='me'?myDead:botDead)[u.id]=u.deathT;});
-  return {loadout:Object.fromEntries(all.map(u=>[u.key,{w:u.stats.weapon,a:u.armor,h:u.helmet,g:u.inv0,k:u.stats.kit}])),positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
+  { const dAt={}; killLog.forEach(k=>{ dAt[k.v]=k.t; }); for(let i=shots.length-1;i>=0;i--){ const d=dAt[shots[i].k]; if(d!==undefined&&shots[i].t>d+0.01)shots.splice(i,1); } }
+  [shots,killLog,events,deaths].forEach(arr=>arr.sort((p,q)=>p.t-q.t));
+  { const seenV=new Set(); for(let i=0;i<killLog.length;i++){ if(seenV.has(killLog[i].v)){ killLog.splice(i,1); i--; } else seenV.add(killLog[i].v); } } // a player can only die once
+  return {reloads,loadout:Object.fromEntries(all.map(u=>[u.key,{w:u.stats.weapon,a:u.armor,h:u.helmet,g:u.inv0,k:u.stats.kit}])),positions,events,winner,duration:endT,planted,plantSite,plantTime,myDead,botDead,kills:killLog,acts,calls,util,bombLog,shots,hpLog,dmg:dmgDealt};
 }
 
 function makePlayDot(id,team,small){
@@ -2045,7 +2124,7 @@ function makePlayDot(id,team,small){
   const label=el('text',{class:'dot-num'+(small?' small':'')},g); label.textContent=id.slice(1);
   const nmBg=el('rect',{height:40,rx:9,fill:'#05080c',opacity:'0.82',stroke:team==='t'?'var(--t)':'var(--ct)','stroke-width':2.5,style:'display:none'},g);
   const nm=el('text',{'text-anchor':'middle',style:"font:700 31px 'Barlow Condensed',sans-serif;fill:#fff;stroke:#06090a;stroke-width:7px;paint-order:stroke;stroke-linejoin:round;pointer-events:none;letter-spacing:.4px"},g);
-  const act=el('text',{class:'dot-act','text-anchor':'middle',style:"font:600 14px 'Barlow',sans-serif;fill:#ffd98a;stroke:#06090a;stroke-width:4px;paint-order:stroke"},g);
+  const act=el('text',{class:'dot-act','text-anchor':'middle',style:"font:800 26px 'Barlow Condensed',sans-serif;fill:#ffb347;stroke:#06090a;stroke-width:6px;paint-order:stroke;pointer-events:none"},g);
   return {g,glow,core,label,act,nm,nmBg,cone,num:id.slice(1),hpBg,hpFg};
 }
 function placePlay(d,x,y,dead,actText,face,blind,hp){
@@ -2056,7 +2135,7 @@ function placePlay(d,x,y,dead,actText,face,blind,hp){
       d.hpFg.setAttribute('width',Math.max(0,40*hp/100)); d.hpFg.setAttribute('fill',hp>60?'#5ee08a':hp>30?'#f2c14e':'#ff5a5a'); } }
   if(d.nm){ const w=(d.nm.textContent||'').length*15+22; d.nm.setAttribute('x',x); d.nm.setAttribute('y',y+61); d.nm.style.opacity=dead?0.3:1;
     d.nmBg.setAttribute('width',w); d.nmBg.setAttribute('x',x-w/2); d.nmBg.setAttribute('y',y+31); d.nmBg.style.opacity=dead?0.2:1; }
-  if(d.act){ d.act.textContent=''; }
+  if(d.act){ d.act.textContent=actText||''; d.act.setAttribute('x',x); d.act.setAttribute('y',y-32); }
   if(d.cone){ if(dead||face==null){d.cone.setAttribute('d','');} else { const L=78,h=0.42;
     d.cone.setAttribute('d',`M${x},${y} L${x+L*Math.cos(face-h)},${y+L*Math.sin(face-h)} A${L},${L} 0 0 1 ${x+L*Math.cos(face+h)},${y+L*Math.sin(face+h)} Z`); } }
   if(d.label){ d.label.textContent=dead?'✕':d.num; }
@@ -2126,6 +2205,8 @@ document.getElementById('iglDecideBtn').onclick=()=>{
 };
 
 // ================== CAREER: full matches, economy, stats, league ==================
+const STAT_SCALE=0.6; // ratings are pulled toward 60 inside a round: a 95 is not 3x a 50 on the server
+const STAT_K=0.7; // how much of a stat difference turns into fighting strength (lower = flatter, more upsets)
 const WSTAT={
  'AK-47':{mag:30,rel:2.5,dmg:36,pen:0.775,cyc:0.1,tap:0.32,range:3200,acc:1,run:0.35,auto:1},
  'M4A4':{mag:30,rel:3.1,dmg:33,pen:0.7,cyc:0.09,tap:0.3,range:3200,acc:1.03,run:0.35,auto:1},
@@ -2243,7 +2324,7 @@ function initMatchState(){
   m.ecoMe=newEco(); m.ecoBot=newEco();
   m.stats={}; for(let i=0;i<5;i++){ m.stats['m'+i]={k:0,d:0,a:0,dmg:0}; m.stats['b'+i]={k:0,d:0,a:0,dmg:0}; }
   m.tacRec={}; m.phase='hub';
-  const nm=()=>({res:{},tRecent:[],ctRecent:[],last:null,hist:[],style:{aggr:Math.random(),site:Math.random()<0.55?(Math.random()<0.5?'A':'B'):null,mid:Math.random(),slow:Math.random(),fake:Math.random(),passive:Math.random()}}); m.mem={me:nm(),bot:nm()}; SPOTMEM={};
+  const nm=()=>({res:{},tRecent:[],ctRecent:[],last:null,hist:[],style:{aggr:Math.random(),site:Math.random()<0.55?(Math.random()<0.5?'A':'B'):null,mid:Math.random(),slow:Math.random(),fake:Math.random(),passive:Math.random()}}); m.mem={me:nm(),bot:nm()}; m.mem.bot.style=oppStyle(m.opp.name); SPOTMEM={};
 }
 function currentSide(){ const m=match; const r=m.round; // r = rounds already played
   let swapped;
@@ -2254,11 +2335,16 @@ function isPistolRound(){ return match.round===0||match.round===12; }
 function prepareRound(){
   const m=match, side=currentSide(), oppSide=side==='T'?'CT':'T';
   if(m.round===24||(m.round>24&&(m.round-24)%3===0)){ m.ecoMe.money=[10000,10000,10000,10000,10000]; m.ecoBot.money=[10000,10000,10000,10000,10000]; }
-  const myIGL=rp()[roster.iglIndex].igl, botIGL=Math.max(...m.opp.players.map(p=>p.igl));
+  const myIGL=Math.min(100,rp()[roster.iglIndex].igl+2*staffLvl('analyst')), botIGL=Math.max(...m.opp.players.map(p=>p.igl));
   const rih=m.round<24?m.round%12:(m.round-24)%3;
   const buyMe=decideBuy(m.ecoMe,rih,isPistolRound(),myIGL), buyBot=decideBuy(m.ecoBot,rih,isPistolRound(),botIGL); buyMe.left=[0,0,0,0,0]; buyBot.left=[0,0,0,0,0];
   // both IGLs make their call for this round
-  const planMe=chooseStrat(side,myIGL,m.mem.me,m.mem.bot,buyMe.type), planBot=chooseStrat(oppSide,botIGL,m.mem.bot,m.mem.me,buyBot.type);
+  let planMe=chooseStrat(side,myIGL,m.mem.me,m.mem.bot,buyMe.type); const planBot=chooseStrat(oppSide,botIGL,m.mem.bot,m.mem.me,buyBot.type);
+  { const sd=m.stand||roster.stand||{tempo:'normal',aggr:'normal',buy:'auto'}; // the manager's call and standing instructions override the IGL
+    if(m.call){ const base=(side==='T'?STRATS_T:STRATS_CT).find(x=>x.id===m.call); if(base)planMe={...base,why:'Your call'}; }
+    planMe={...planMe,aggr:{passive:-0.3,normal:0,aggressive:0.3}[sd.aggr||'normal']};
+    if(side==='T'&&sd.tempo&&sd.tempo!=='normal')planMe.speed=sd.tempo==='fast'?'fast':'slow';
+    if(sd.buy==='save'&&buyMe.type!=='Pistol')buyMe.type='Eco'; if(sd.buy==='force'&&buyMe.type==='Eco')buyMe.type='Force buy'; m.call=null; }
   const myP=generateBots(oppSide,planMe,{roles:[0,1,2,3,4].map(roleOf),names:rp().map(p=>p.name)}).bots, calledName=planMe.name, tacticId=null;
   const gen=generateBots(side,planBot,{roles:match.opp.players.map(p=>p.role),names:match.opp.players.map(p=>p.name)}); const botP=gen.bots;
   const myStats={}, botStats={};
@@ -2337,7 +2423,7 @@ function finishMatch(){
         for(let g=0;g<6&&ovr(p)<=before;g++){ const k=keys[Math.floor(Math.random()*keys.length)]; p[k]=clamp(p[k]+1,30,99); }
         const o=ovr(p), r=rarityOf(o); p.tier=r[1]; p.rarity=r[2]; p.cost=priceFor(o,p.isPro); m.growth.push(p.name+' improved to '+o); } }); }
   if(m.league){ const L=roster.league; const f=L.fixtures[L.week]; f.played=true; f.score=[m.score.me,m.score.bot];
-    recordTable('YOU',m.score.me,m.score.bot); recordTable(m.opp.name,m.score.bot,m.score.me); simOtherMatches(m.oppIdx); L.week++;
+    recordTable('YOU',m.score.me,m.score.bot); recordTable(m.opp.name,m.score.bot,m.score.me); simOtherMatches(m.oppIdx); L.week++; orgWeek();
     if(L.week>=L.fixtures.length){ const pos=leagueStandings().findIndex(r=>r.name==='YOU'); const prize=DIVS[L.div].prize[pos]||0; roster.money+=prize;
       L.nextDiv=(L.div>1&&pos<=1)?L.div-1:(L.div<5&&pos>=6)?L.div+1:L.div;
       const move=L.nextDiv<L.div?'Promoted to the '+DIVS[L.nextDiv].name+'!':L.nextDiv>L.div?'Relegated to the '+DIVS[L.nextDiv].name+'.':''; m.seasonEnd={pos:pos+1,prize,move}; }
@@ -2404,9 +2490,10 @@ function scoreboardHTML(){
   const m=match, R=Math.max(1,m.round);
   const row=(n,s,r,role)=>`<tr><td>${n}<span class="rl">${role||''}</span></td><td>${s.k}</td><td>${s.d}</td><td>${s.a}</td><td>${Math.round(s.dmg/R)}</td><td class="${r>=1.1?'good':r<0.9?'bad':''}">${r.toFixed(2)}</td></tr>`;
   let h='<table class="sb"><tr><th>'+MY_TEAM+'</th><th>K</th><th>D</th><th>A</th><th>ADR</th><th>Rating</th></tr>';
-  for(let i=0;i<5;i++)h+=row(rp()[i].name,m.stats['m'+i],rating(m.stats['m'+i],R),roleOf(i));
+  const srt=pre=>[0,1,2,3,4].sort((a,b)=>rating(m.stats[pre+b],R)-rating(m.stats[pre+a],R)||m.stats[pre+b].k-m.stats[pre+a].k); // best on top, worst at the bottom
+  srt('m').forEach(i=>{ h+=row(rp()[i].name,m.stats['m'+i],rating(m.stats['m'+i],R),roleOf(i)); });
   h+=`<tr><th>${m.opp.name}</th><th></th><th></th><th></th><th></th><th></th></tr>`;
-  for(let i=0;i<5;i++)h+=row(m.opp.players[i].name,m.stats['b'+i],rating(m.stats['b'+i],R),m.opp.players[i].role);
+  srt('b').forEach(i=>{ h+=row(m.opp.players[i].name,m.stats['b'+i],rating(m.stats['b'+i],R),m.opp.players[i].role); });
   return h+'</table>';
 }
 function renderHub(){
@@ -2422,14 +2509,94 @@ function renderHub(){
    <div class="hist">${m.history.map((h,i)=>`<span class="hd ${h.won?'w':'l'}" title="R${i+1} ${h.called}">${h.how}</span>${i===11?'<span class="hs">|</span>':''}`).join('')}</div>
    <div class="ecoline">Your money ${fmtMoney(m.ecoMe)} → likely <b>${nb.type}</b> · Opponent ${fmtMoney(m.ecoBot)}</div>
    ${m.lastSummary?`<div class="lastsum">${m.lastSummary}</div>`:''}
+      <div data-pk="hub" data-pane="round">${callCardHTML(side)}
    <div class="hubbtns"><button class="bigbtn" id="hbWatch">▶ Watch next round</button>
-   <div class="toolbar"><button class="tbtn accent" id="hbSim1">⏩ Sim round</button><button class="tbtn accent" id="hbSimH">⏭ Sim to half</button><button class="tbtn accent" id="hbSimE">⏭ Sim to end</button></div></div>
-   ${scoreboardHTML()}`;
+   <div class="toolbar"><button class="tbtn accent" id="hbSim1">⏩ Sim round</button><button class="tbtn accent" id="hbSimH">⏭ Sim to half</button><button class="tbtn accent" id="hbSimE">⏭ Sim to end</button></div></div></div>
+   <div data-pk="hub" data-pane="board">${scoreboardHTML()}</div>`;
+    bindCallCard(); paneTabs(hub,[['round','Next round'],['board','Scoreboard']],'hub');
+
   document.getElementById('hbWatch').onclick=hubWatch;
   document.getElementById('hbSim1').onclick=()=>hubSimRounds(1);
   document.getElementById('hbSimH').onclick=()=>hubSimRounds(m.round<12?12-m.round:m.round<24?24-m.round:3-((m.round-24)%3));
   document.getElementById('hbSimE').onclick=()=>hubSimRounds(60);
 }
+
+
+
+// ============ CLUB OFFICE: staff · contracts · wages · free agents ============
+const STAFF_ROLES={coach:{label:'Coach',icon:'🧑‍🏫',desc:'Faster training XP and a weekly morale boost'},analyst:{label:'Analyst',icon:'📊',desc:'Sharper scouting reports and a slightly better IGL read'},scout:{label:'Scout',icon:'🔭',desc:'Finds free agents — more of them and better as he levels up'}};
+const STAFF_WAGE=[0,30,60,110,180,280];
+const staffLvl=k=>(roster.staff&&roster.staff[k]&&roster.staff[k].lvl)||0;
+const coachBonus=()=>staffLvl('coach')?Math.floor((staffLvl('coach')+1)/2):0;
+const wageOf=p=>Math.max(10,Math.round(pVal(p)*0.04/5)*5);
+function ensureContract(p){ if(p.wage==null)p.wage=wageOf(p); if(p.contract==null)p.contract=10; }
+const payroll=()=>roster.market.filter(p=>p.owned).reduce((a,p)=>{ ensureContract(p); return a+p.wage; },0), staffCost=()=>Object.values(roster.staff||{}).reduce((a,x)=>a+(x?x.wage:0),0);
+function genStaffPool(){ const pool={}; Object.keys(STAFF_ROLES).forEach(k=>{ pool[k]=[0,1,2].map(()=>{ const lvl=clamp(rnd(1,4)+(Math.random()<0.2?1:0),1,5); return {name:makeUnknown(50,'Entry').name,lvl,wage:STAFF_WAGE[lvl]}; }); }); return pool; }
+function genFA(){ const avg=Math.round(rp().reduce((a,p)=>a+ovr(p),0)/5), sl=staffLvl('scout'), n=2+sl; return Array.from({length:n},()=>{ const q=makeUnknown(clamp(avg+rnd(-6+sl*2,2+sl*2),35,95),ROLE_LIST[rnd(0,4)],'Free agent'); q.cost=pVal(q); q.wage=wageOf(q); q.contract=10; return q; }); }
+function clubNews(t){ roster.news=roster.news||[]; roster.news.unshift(t); roster.news.length=Math.min(roster.news.length,8); }
+function orgWeek(){ roster.staff=roster.staff||{};
+  const pay=payroll()+staffCost(); roster.money-=pay; clubNews('Paid wages: −'+pay.toLocaleString());
+  roster.market.filter(p=>p.owned).forEach(p=>{ ensureContract(p); p.contract--; });
+  roster.market.filter(p=>p.owned&&p.contract<=0).forEach(p=>{ const nOwn=roster.market.filter(x=>x.owned).length;
+    if(nOwn<=5){ const fee=p.wage*4; roster.money-=fee; p.contract=10; clubNews(p.name+' re-signed automatically (−'+fee+'), no replacement available'); }
+    else { p.owned=false; p.team='Free agent'; const si=roster.slots.indexOf(p.id); if(si>=0){ const bench=roster.market.filter(x=>x.owned&&!roster.slots.includes(x.id)).sort((a,b)=>ovr(b)-ovr(a))[0]; if(bench)roster.slots[si]=bench.id; } clubNews(p.name+"'s contract ran out — he left the club"); } });
+  const cl=staffLvl('coach'); if(cl)roster.market.filter(p=>p.owned).forEach(p=>{ if((p.morale??60)<70)p.morale=Math.min(100,(p.morale??60)+cl); });
+  if(roster.money<0){ clubNews('⚠ You are in debt — morale drops until you recover'); roster.market.filter(p=>p.owned).forEach(p=>{ p.morale=Math.max(10,(p.morale??60)-3); }); }
+  roster.fa=genFA(); roster.staffPool=genStaffPool(); saveRoster(); }
+function renewPlayer(p){ const bench=!roster.slots.includes(p.id), mor=p.morale??60;
+  if(mor<20){ toast(p.name+' refuses to renew — he is too unhappy'); return; }
+  const ask=Math.round(p.wage*(mor<35?1.3:bench&&mor<50?1.15:1)/5)*5, fee=ask*4; if(roster.money<fee){ toast('Need '+fee.toLocaleString()+' to renew'); return; }
+  roster.money-=fee; p.wage=ask; p.contract=12; saveRoster(); toast(p.name+' renewed · wage '+ask+'/wk'); renderMarket(); }
+function renderClub(){ const box=document.getElementById('clubBox'); if(!box)return; roster.staff=roster.staff||{}; if(!roster.staffPool)roster.staffPool=genStaffPool(); if(!roster.fa)roster.fa=genFA();
+  const mine=roster.market.filter(p=>p.owned); mine.forEach(ensureContract); const pr=payroll(), sc=staffCost(), weekly=pr+sc, runway=weekly?Math.floor(roster.money/weekly):99;
+  const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const staffRows=Object.entries(STAFF_ROLES).map(([k,r])=>{ const cur=roster.staff[k];
+    if(cur)return `<div class="crow"><b>${r.icon} ${r.label}</b><span>${cur.name} · ${stars(cur.lvl)} · ${cur.wage}/wk</span><button class="tbtn" data-fire="${k}">Fire</button></div><div class="note" style="margin:0 0 6px;text-align:left">${r.desc}</div>`;
+    return `<div class="crow"><b>${r.icon} ${r.label}</b><span class="note" style="margin:0">vacant — ${r.desc}</span></div>`+roster.staffPool[k].map((c,i)=>`<div class="crow sub"><span>${c.name} · ${stars(c.lvl)} · ${c.wage}/wk</span><button class="tbtn accent" data-hire="${k}:${i}">Hire · ${(c.wage*3).toLocaleString()}</button></div>`).join(''); }).join('');
+  const conRows=mine.sort((a,b)=>a.contract-b.contract).map(p=>`<div class="crow"><b>${p.name}</b><span style="${p.contract<=2?'color:#ff8a8a':''}">${p.wage}/wk · ${p.contract} wk left</span><button class="tbtn" data-renew="${p.id}">Renew</button></div>`).join('');
+  const faRows=roster.fa.map((q,i)=>`<div class="crow"><b>${q.name}</b><span>${q.bestRole||q.role||''} · OVR ${ovr(q)} · ${q.wage}/wk</span><button class="tbtn accent" data-sign="${i}">Sign · ${(q.wage*3).toLocaleString()}</button></div>`).join('')||'<div class="note">No free agents this week.</div>';
+  const pane=(k,h)=>`<div data-pk="club" data-pane="${k}">${h}</div>`;
+  box.innerHTML=`<div class="goalcard">`+pane('ov',`<div class="crow"><b>Balance</b><span style="color:${roster.money<0?'#ff8a8a':'#5ee08a'};font-size:20px;font-weight:800">${roster.money.toLocaleString()}</span></div>
+    <div class="crow"><b>Players</b><span>${pr.toLocaleString()} / week</span></div><div class="crow"><b>Staff</b><span>${sc.toLocaleString()} / week</span></div>
+    <div class="crow"><b>Total</b><span><b>${weekly.toLocaleString()}</b> / week · about ${runway} weeks of runway</span></div>
+    ${(roster.news&&roster.news.length)?`<div class="sectitle">Club news</div>${roster.news.map(n=>`<div class="srow">${n}</div>`).join('')}`:''}`)
+    +pane('staff',staffRows)+pane('con',conRows||'<div class="note">No players under contract.</div>')+pane('fa',faRows+(staffLvl('scout')?'':'<div class="note">Hire a scout to see more and better free agents.</div>'))+`</div>`;
+  paneTabs(box,[['ov','Overview'],['staff','Staff'],['con','Contracts'],['fa','Agents']],'club');
+  box.querySelectorAll('[data-hire]').forEach(b=>b.onclick=()=>{ const [k,i]=b.dataset.hire.split(':'), c=roster.staffPool[k][+i], fee=c.wage*3; if(roster.money<fee){ toast('Need '+fee.toLocaleString()); return; } roster.money-=fee; roster.staff[k]=c; saveRoster(); toast('Hired '+c.name); renderMarket(); });
+  box.querySelectorAll('[data-fire]').forEach(b=>b.onclick=()=>{ roster.staff[b.dataset.fire]=null; saveRoster(); renderMarket(); });
+  box.querySelectorAll('[data-renew]').forEach(b=>b.onclick=()=>renewPlayer(roster.market.find(p=>p.id===b.dataset.renew)));
+  box.querySelectorAll('[data-sign]').forEach(b=>b.onclick=()=>{ const q=roster.fa[+b.dataset.sign], fee=q.wage*3; if(roster.money<fee){ toast('Need '+fee.toLocaleString()); return; } roster.money-=fee; q.owned=true; q.team=MY_TEAM; roster.market.push(q); roster.fa.splice(+b.dataset.sign,1); saveRoster(); toast('Signed '+q.name); renderMarket(); }); }
+
+
+// ============ SUB-TABS: one topic at a time instead of one long page ============
+const PANE_STATE={};
+function paneTabs(container,panes,key){ if(!container)return; const els=[...container.querySelectorAll('[data-pk="'+key+'"]')]; if(!els.length)return;
+  let bar=container.querySelector('.subbar[data-key="'+key+'"]'); if(!bar){ bar=document.createElement('div'); bar.className='subbar'; bar.dataset.key=key; els[0].parentNode.insertBefore(bar,els[0]); }
+  const cur=panes.some(p=>p[0]===PANE_STATE[key])?PANE_STATE[key]:panes[0][0]; PANE_STATE[key]=cur;
+  const apply=()=>{ container.querySelectorAll('[data-pk="'+key+'"]').forEach(e=>e.classList.toggle('pane-off',e.dataset.pane!==PANE_STATE[key])); bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.p===PANE_STATE[key])); };
+  bar.innerHTML=panes.map(p=>`<button data-p="${p[0]}">${p[1]}</button>`).join(''); bar.querySelectorAll('button').forEach(b=>b.onclick=()=>{ PANE_STATE[key]=b.dataset.p; apply(); window.scrollTo({top:0}); }); apply(); }
+
+// ============ SCOUTING · TACTIC CALLS ============
+function oppStyle(name){ let h=7; for(const c of String(name)+'style')h=(h*31+c.charCodeAt(0))>>>0; const r=()=>{ h=(h*1664525+1013904223)>>>0; return h/4294967296; };
+  return {aggr:r(),site:r()<0.7?(r()<0.5?'A':'B'):null,mid:r(),slow:r(),fake:r(),passive:r()}; }
+function scoutHTML(t){ const s=oppStyle(t.name), pl=t.players.slice().sort((a,b)=>ovr(b)-ovr(a)), star=pl[0], awp=t.players.find(p=>p.role==='AWP'), iglP=t.players.slice().sort((a,b)=>b.igl-a.igl)[0];
+  const L=[ s.aggr>0.62?'⚡ Fast, aggressive — hits early and pushes for info':s.aggr<0.38?'🐢 Patient — slow defaults, late executes':'⚖️ Balanced tempo',
+    s.site?`🎯 Favours ${s.site} site (about ${58+Math.round(s.aggr*14)}% of their hits)`:'🎯 Hits both sites evenly',
+    s.fake>0.6?'🎭 Fakes often, then hits the other site':'', s.mid>0.6?'🧭 Contests mid hard':'', s.passive>0.6?'🛡 Passive on CT, plays for retakes':s.aggr>0.6?'🛡 Aggressive on CT, pushes info':'' ].filter(Boolean);
+  const tip=s.site?`Stack ${s.site} on CT and expect them there.`:s.aggr>0.62?'Hold deeper and let them overextend.':s.passive>0.6||s.slow>0.6?'Be patient — take map control, don\'t over-rotate.':'No clear tendency — play your default.';
+  const lv=staffLvl('analyst'), shown=L.slice(0,1+lv), hidden=L.length-shown.length;
+  return `<div class="scout"><div class="sectitle" style="margin:10px 0 4px">Scouting report${lv?'':' (basic)'}</div>${shown.map(x=>`<div class="srow">${x}</div>`).join('')}${hidden>0?`<div class="srow" style="opacity:.6">🔒 ${hidden} more insight${hidden>1?'s':''} — hire a better analyst in Market → Club office</div>`:''}
+    ${lv>=1?`<div class="srow">⭐ Star: <b>${star.name}</b> (${star.role}, ${ovr(star)})${awp?` · 🔭 AWPer: <b>${awp.name}</b> (${ovr(awp)})`:''} · IGL: <b>${iglP.name}</b> (${iglP.igl})</div>`:''}${lv>=3?`<div class="srow tip">💡 ${tip}</div>`:''}</div>`; }
+const CALL_NAMES={default:'Default',allA:'Rush A',allB:'Rush B',splitA:'Split A',splitB:'Split B',fakeAB:'Fake A → B',slowA:'Slow → late A',slowB:'Slow → late B',midB:'Mid → B',palaceA:'Palace A',std:'Standard 2-1-2',stackA:'Stack A',stackB:'Stack B',aggro:'Aggressive mid',passive:'Passive retake',midStack:'Mid heavy'};
+function callCardHTML(side){ const m=match, st=m.stand||(m.stand=roster.stand||{tempo:'normal',aggr:'normal',buy:'auto'}), list=side==='T'?STRATS_T:STRATS_CT;
+  const chip=(k,v,label,on)=>`<button class="chip2 ${on?'on':''}" data-${k}="${v}">${label}</button>`;
+  return `<div class="goalcard" id="callCard"><div class="sectitle" style="margin:0 0 6px">Call the round <span class="note" style="margin:0">(${side})</span></div>
+    <div class="chips">${chip('call','auto','🤖 Auto (IGL)',!m.call||m.call==='auto')}${list.map(x=>chip('call',x.id,CALL_NAMES[x.id]||x.name,m.call===x.id)).join('')}</div>
+    <div class="note" style="margin:8px 0 2px;text-align:left">Standing instructions</div>
+    <div class="chips">${side==='T'?['slow','normal','fast'].map(v=>chip('tempo',v,'Tempo: '+v,st.tempo===v)).join(''):''}${['passive','normal','aggressive'].map(v=>chip('aggr',v,'Style: '+v,st.aggr===v)).join('')}${['auto','force','save'].map(v=>chip('buy',v,'Buy: '+v,st.buy===v)).join('')}</div></div>`; }
+function bindCallCard(){ const m=match, root=document.getElementById('callCard'); if(!root)return;
+  root.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{ m.call=b.dataset.call==='auto'?null:b.dataset.call; renderHub(); });
+  ['tempo','aggr','buy'].forEach(k=>root.querySelectorAll('[data-'+k+']').forEach(b=>b.onclick=()=>{ m.stand[k]=b.dataset[k]; roster.stand=m.stand; saveRoster(); renderHub(); })); }
 
 // ============ HOME · POST-MATCH · GOALS · MORALE · TOUR ============
 const moodE=p=>{ const m=p.morale??60; return m>=75?'😄':m>=50?'🙂':m>=30?'😐':'😠'; };
@@ -2451,10 +2618,10 @@ function reportExtras(){ const m=match, best=m.ratings.indexOf(Math.max(...m.rat
     if(bn>=3){ const [bx,by]=bk.split(',').map(Number), cx=bx*120+60, cy=by*120+60, nm=Object.entries(CALLOUTS).sort((a,c)=>Math.hypot(a[1].x-cx,a[1].y-cy)-Math.hypot(c[1].x-cx,c[1].y-cy))[0][0]; tips.push(`${bn} of your deaths came around ${nm}. Avoid repeating the same position there, or add utility.`); } }
   m.ratings.forEach((r,i)=>{ if(r<0.75&&m.stats['m'+i].d>m.round*0.7)tips.push(`${rp()[i].name} is dying too often (${m.stats['m'+i].k}/${m.stats['m'+i].d}). Move him to a safer role or pair him with a teammate.`); });
   if(!tips.length)tips.push(m.score.me>m.score.bot?'Clean game. Keep the same plan, and train your weakest player this week.':'Close game. Review the heatmap and try a different default on the side you lost most.');
-  return `<div class="mvpcard"><div style="font-size:30px">🏆</div><div><div class="note" style="margin:0">MVP</div><div class="mv">${b.name}</div><div class="note" style="margin:0">${m.ratings[best].toFixed(2)} rating · ${st.k}/${st.d}/${st.a}</div></div></div>
-   <svg viewBox="0 0 1374 1196" style="width:100%;border-radius:12px;background:#000;margin:6px 0"><image href="${IMG_HREF}" width="1374" height="1196" preserveAspectRatio="none"/>${dots}</svg>
-   <div class="note" style="margin:0 0 6px"><span style="color:#3ddc84">●</span> our kills &nbsp; <span style="color:#ff4d4d">●</span> our deaths</div>
-   ${tips.slice(0,2).map(t=>`<div class="tipbox">💡 ${t}</div>`).join('')}${m.mood&&m.mood.length?`<div class="tipbox">😠 ${m.mood.join(', ')} ${m.mood.length>1?'are':'is'} unhappy on the bench. Give them playing time or sell.</div>`:''}`; }
+    return `<div data-pk="rep" data-pane="sum"><div class="mvpcard"><div style="font-size:30px">🏆</div><div><div class="note" style="margin:0">MVP</div><div class="mv">${b.name}</div><div class="note" style="margin:0">${m.ratings[best].toFixed(2)} rating · ${st.k}/${st.d}/${st.a}</div></div></div>
+      </div><div data-pk="rep" data-pane="map"><svg viewBox="0 0 1374 1196" style="width:100%;border-radius:12px;background:#000;margin:6px 0"><image href="${IMG_HREF}" width="1374" height="1196" preserveAspectRatio="none"/>${dots}</svg>
+   <div class="note" style="margin:0 0 6px"><span style="color:#3ddc84">●</span> our kills &nbsp; <span style="color:#ff4d4d">●</span> our deaths</div></div><div data-pk="rep" data-pane="sum">
+   ${tips.slice(0,2).map(t=>`<div class="tipbox">💡 ${t}</div>`).join('')}${m.mood&&m.mood.length?`<div class="tipbox">😠 ${m.mood.join(', ')} ${m.mood.length>1?'are':'is'} unhappy on the bench. Give them playing time or sell.</div>`:''}</div>`; }
 function startTour(){ const steps=[['🎯','Play','Your next match sits on the Play tab. Win it for credits, XP and weekly goals.'],['🧠','Squad & Tactics','Set your lineup and roles, and draw strats. Your IGL calls the rounds.'],['📈','Train, Trade & Stats','One drill per player every week, trade in the Market, and study your heatmaps.']]; let i=0;
   const o=document.createElement('div'); o.id='tour'; document.body.appendChild(o);
   const show=()=>{ const [e,t,d]=steps[i]; o.innerHTML=`<div class="tc"><div style="font-size:44px">${e}</div><h3>${t}</h3><p>${d}</p><button class="bigbtn" id="tNext">${i<2?'Next':'Let\'s go'}</button><div class="note">${i+1} / 3</div></div>`;
@@ -2471,25 +2638,27 @@ function renderReport(){
   const won=m.score.me>m.score.bot; const best=m.ratings.indexOf(Math.max(...m.ratings));
   rep.innerHTML=`<div class="resultcard ${won?'won':'lost'}"><div class="big">${won?'VICTORY':'DEFEAT'} ${m.score.me} : ${m.score.bot}</div>vs ${m.opp.name} · MVP: ${rp()[best].name} (${m.ratings[best].toFixed(2)}) · +${m.reward.toLocaleString()} credits</div>
    ${m.seasonEnd?`<div class="resultcard won"><div class="big">SEASON OVER</div>You finished #${m.seasonEnd.pos} · prize ${m.seasonEnd.prize.toLocaleString()} credits${m.seasonEnd.move?'<br><b>'+m.seasonEnd.move+'</b>':''}</div>`:''}
-   ${m.growth&&m.growth.length?`<div class="growth">${m.growth.map(g=>'<div>▲ '+g+'</div>').join('')}</div>`:''}
+    ${m.growth&&m.growth.length?`<div data-pk="rep" data-pane="sum" class="growth">${m.growth.map(g=>'<div>▲ '+g+'</div>').join('')}</div>`:''}
    ${m.friendly?`<div class="note">Friendly played — ${roster.friendliesLeft} left before the next Match Day. Players earned XP.</div>`:''}
-   ${reportExtras()}
-   ${scoreboardHTML()}
+    ${reportExtras()}
+ <div data-pk="rep" data-pane="board">${scoreboardHTML()}</div>
+
    <div class="note">Form updated: wins and strong ratings raise form, losses lower it. Form directly affects aim, positioning and clutch.</div>
    <button class="bigbtn" id="repDone">Continue</button>`;
-  document.getElementById('repDone').onclick=()=>{match=null; renderPlay();};
+   paneTabs(rep,[['sum','Summary'],['map','Heatmap'],['board','Scoreboard']],'rep');
+ document.getElementById('repDone').onclick=()=>{match=null; renderPlay();};
 }
 function renderLeague(){
   const L=ensureLeague(), wrap=document.getElementById('leagueBody');
   const st=leagueStandings();
   let h=`<div class="moneyline">${DIVS[L.div].name} · Season ${L.season}</div><div class="ladder">${[5,4,3,2,1].map(d=>`<span class="${d===L.div?'on':d>L.div?'done':''}">${DIVS[d].name.replace(' League','')}</span>`).join('')}</div><div class="note">${L.div>1?'Top 2 are promoted to the '+DIVS[L.div-1].name+'. ':'You made it to the top. '}${L.div<5?'Bottom 2 are relegated.':''} Win pays ${DIVS[L.div].win.toLocaleString()} credits.</div>
-   <table class="sb"><tr><th>#</th><th class="tl">Team</th><th>P</th><th>W</th><th>L</th><th>RD</th><th>Pts</th></tr>`;
+    <div data-pk="lg" data-pane="table"><table class="sb"><tr><th>#</th><th class="tl">Team</th><th>P</th><th>W</th><th>L</th><th>RD</th><th>Pts</th></tr>`;
   st.forEach((r,i)=>h+=`<tr class="${r.name==='YOU'?'me':''}"><td>${i+1}</td><td class="tl">${r.name==='YOU'?MY_TEAM:r.name}</td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.rd>0?'+':''}${r.rd}</td><td>${r.pts}</td></tr>`);
-  h+='</table><div class="sectitle">YOUR FIXTURES</div>';
+  h+='</table></div><div data-pk="lg" data-pane="fix"><div class="sectitle">YOUR FIXTURES</div>';
   L.fixtures.forEach((f,i)=>{const t=L.teams[f.opp]; h+=`<div class="fx ${i===L.week?'next':''}">${dateLabel(i)} vs ${t.name} <span class="rl">rating ${Math.round(t.players.reduce((a,p)=>a+ovr(p),0)/5)}</span> <b>${f.played?(f.score[0]+'-'+f.score[1]):i===L.week?'Next':''}</b></div>`;});
-  if(L.week>=L.fixtures.length) h+='<button class="bigbtn" id="newSeasonBtn">Start next season</button>';
-  wrap.innerHTML=h;
-  const nb=document.getElementById('newSeasonBtn');
+   h+='</div>'; if(L.week>=L.fixtures.length) h+='<button class="bigbtn" id="newSeasonBtn">Start next season</button>';
+   wrap.innerHTML=h; paneTabs(wrap,[['table','Table'],['fix','Fixtures']],'lg');
+ const nb=document.getElementById('newSeasonBtn');
   if(nb) nb.onclick=()=>{ L.season++; L.div=L.nextDiv||L.div; L.teams=divTeams(L.div); roster.market=[...roster.market.filter(p=>p.owned),...newMarket()]; newSeasonFixtures(); saveRoster(); renderLeague(); };
 }
 
@@ -2505,14 +2674,23 @@ const WPATH={
  PIS:'M16 7 L46 7 L46 11 L32 11 L30 12 L28 18 L22 18 L24 11 L16 11 Z',
  DEAG:'M12 6 L52 6 L52 11 L34 11 L32 12 L30 19 L22 19 L24 11 L12 11 Z'};
 const WMAP={'AK-47':'AK','Galil AR':'AK','M4A1-S':'M4S','M4A4':'M4','FAMAS':'M4','AWP':'AWP','SSG 08':'SSG','MAC-10':'SMG','MP9':'SMG','Desert Eagle':'DEAG','Glock-18':'PIS','USP-S':'PIS','Tec-9':'PIS','Five-SeveN':'PIS','P250':'PIS'};
-const wIcon=w=>`<svg class="wi" viewBox="0 0 64 20" aria-label="${w}"><title>${w}</title><path d="${WPATH[WMAP[w]||'AK']}"/></svg>`;
-const HS_ICON='<svg class="hi" viewBox="0 0 20 20"><title>Headshot</title><circle cx="10" cy="10" r="5.5" fill="none" stroke="#fff" stroke-width="2"/><path d="M10 0v6M10 14v6M0 10h6M14 10h6" stroke="#fff" stroke-width="2"/></svg>';
+const WICON={"AK-47":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAAAaCAYAAAA38EtuAAAEiUlEQVR42u2YS4gcdRDGf9Xbs5N1XU1C3JgoUSPECEqQEOJBURFFUQ8x4MUH4gMii0G8KEGCgnoQBMlBo6IeFU++QbyqB4UIwdchiWhYRcwacBP3MY/PSzUUbc9Oz2yPu5ItaLqn+/+vrvqq6qvqMQYskobMrCXpLGAUaC2w3MqqDeuHetjXTZpmNlXCJzMzdXhWN7M5SS8DjwCbzeyndIAAG1Azs3lJm4DXgJuAkwsA0wvQbSAFVldo9rSkvcAhD2BRUhwxs78lJWbWLvAZSeuAcb+ddHVMUpIt9LW2gOMtf54AZmbzrmMb8D5wkYOTVBzTdoW6yth2EJjwtWnu/XUzm5b0KHAAOAVcAfyaSko9ev9OL7O5PhxpOcDrgduA54H1QNMNU8VAVxm4LGHUIaAG7AFmzOxx9ynKvKQxr9yG27bRzH7ultEbgUuBtcA64Fw/0pxxPwBfAucDNwIjwFXArcHIhOUvLQfPCsC2QFkjwBvAL+5X5l8L2AbsBmYcp6PAOybpduAO35xXuhXYAIw5wJ1kHvgeWOMUEe+nSwhyo+S6zN/aAGz4HHjdJE15xpaNeLsg2sOxc4cIpz2UbL+Tx2InmCjvAq844I0SQVQHKsso0oDDZvanSVIAMB/hJBhsCzigsD+pcNxajJwCtofS7hY0AybN7PRARlxJfzj/VtH5k1xmTwF14OyC7M6ayxHgE+CEZ8l1wC3BeSsA5ASwxa/ju9vAk8As8KKZTfcDSnhPJVORmQlJX6k/aUtqSGqGe7OSjkn6TNLVwfiPCvbP+Pmu/MDf5Z2S9FvZWb7XY1DllQKTwI6SUYzjTy1k6SHPxlfN7K3g6DBwDnB5bvpoB17fKekYkI2SF3jHbvnYOVJgR13SJcBxoNXpK63T/aWQ1L/Uyo49aQD3tHfUKTO7u6D0hs1sVtI+YHMIZAb2YW8+W4A7PeA1HxH3evlfAzzs76+F3rEGeNPMbpBUpnEtvUjalSvLWKZzTgdRPpX0gqR7go6apGEHGUmJ/75M0o++r+VHW9LvkraXsG23722E97f8fNz1Dw+y5KsEejTnQMMBjtz7raTHJN0naXXYm0qqF/2x4ufnfH8zBLIp6Xp/PuJBqrmuNARtlaQLJX3oe+dzYLclHXQ9q/4PQG9ww/PgStKEZ/zWgoaVFmWSpCHP6CslfReC15b0VwC51sWuYT8/kEuEeD0l6eYs6Msd6PEcuE9L2ilpR95xz7akJED7XF/MxK/jmhITQ13SWs/qvK4sKb7wZEm62bbUQJ8n6YCkTZIujlnqxqe9OBCAfraA+8czHu9R10TBiJf1kJakJ8pUyVIDXVT+fWdHVsKSrvVGeNKPj/vUV3c6es/BzdNbRnl7QmNe1pltg+7e/eoPwfumgK8jpTzImShVfXV5Rpuk+wu4Og/2Q06BCSvSfzVI2h8oIy/ZvP32CmKLAzujkJc6gJ1Ryq7FUNUK0D7y5T6GZnPj3v7/quecCWBnY98z4Z/ApqRJSWO+ZoWjKwK75tdPBeq4NxsHV1CqFuyh0CA/kDS6XLn5Hws2rKQNgYJ7AAAAAElFTkSuQmCC","AWP":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAAAaCAYAAABl/7RgAAAFLElEQVR42u2bS4hcRRSGv3P7kZjHJD7H+CBCRLPQgEpEoi5EUFwEdKEoCnElShTRKFm5yUIRxIVvcecDslCEkI0IPoKIIiqGiEpQEoMmJmqEYWYyPd33d9GnSPXN7aGfmenJPVBUd/Wt6rr3/HX+c07VhQUgkhJJJS9Jl33N6491Ug5IqnQ5zjJJqyVdIGnc6wqFtEh5IUzCzNKM8saAJJpfA0i9WHRpAqSSbgY2RO1rgdclvQSUvH+ehN+uBe4D1nkJ8gjwhqQkO8czVWyeLYuZmSRdDVwKCFgN3ANUgFXeNu2l7iBJvD11UG0ALhvQtNLo2bxjZlsklc2sXsBl/i1MGZgFXgBuG/DYjUj5nSycJKoXlAUuABMZGa//AU5EFq/kvzW8VtRnSaa/5Sg6jFGKrpvNjJMHsCQCjrlFK2QBrqAasDRDOTgtDYp6qz30G5dUBiqSCv/FrD7fgGl4VLQDuB240NsnvbwMfBr5KxVgT5f+SAL8CmwDDjl4lLFSJb/2euBG96fWAN+771JYmnZObwhT+0Ri18tR0sVuZWaCgszsiKRrPIo5DpwHvNkD5Z0AvgQORg6zMtYsdSd7ldNeAhyNnpG6/M80orpO+ltUl6J52QLAyIzXD1ic9xhU6OhjdgOaxMwa3vdZ4A63NlVgbB6oM1i0UmFTWuTHPAuz0hVV8dItwv82s6kegfYKsHWIILBC532aG0lXASt9Ra0H7vecxriv7m7lA2C7Rz5pF8osA3uBSxbR8/0oor+lwLIRBq6AXSZp0m+kXajZKbVY5Jj+Dnzu46YdTqYC3LXIFuStwL9+b/vN7L/FYGFmac1uljIOWNeRTx/cv5hpYyewxR3qmRG9h7Q8BIcyhKi9ONCny7lt0H5/qewRSph/0sf/1CLnueTRn5lZbVRRPywFJX086JDhjcPZpE/FxaGu0ZoFnuse+pUqzQxzGZg2s3QQaYvFCJh+4/7yEMYkAsmHwPO0JvHKbgFe87zPLs/7bOJkArDXxWPAJkkbgW8llUIaoQBMH/zoD/cnmlnfsGdUBx730qtfdQD4AngROAYcN7PJNqF9oKKbgOUDsDYBpJcDd5vZN5KWzEGJBWC6BM2UmR3KKHE7cKeH+504xsHxfht42O9zMk5M5hzUqjh9rPB5rKa5PTE9gHA0+DFHMhR5RgAmbXPD1udKDDvE10na4cpe7hHFe8D5wC/AFR1GWg3goJlNOwW0+A85h7bqfs1u4CmgZmZjw3joZ5rTOxcoZulvh3k3cC7wjJcge4EHzex9SRNRfiedI8qBZkIytDXm2uMys4afrHta0npPORinblb2A5SR3/LuBTB/eDIqtgwNN+XrPJTs5ShBzcw2+2p/FLgSOEwzY/yWr/4VnHoEIk+mgN+Az5x6Gh0qNHVrtDknwirEV1EnDyQ4pN8BT7rjWOfk0YA6zV3eJ2huLfQCmsMOuNnscUhXegiHfwDOAvb5Z8uEzceAP4F9ZvZzL+dxJVVHnTqGJmqVVFJDUi1Tprx9p/exNmOZpFd9rJqP16l8Hb0BUJG0RFLVP4f2RNINkjZKWtXBvRW7zUOgpDQnZ5AXQQBUXQlVSbWM2Q59HvPvW3OScJYT4YT/3+YHws3MZttRBvBV1hK0i0xGNdcxSpR0FPgEeJfm6bSQIl8DPORg+MuVoZwVnURAvBd4DrioQ7obM7OJ8CZBB1ZDxasf80NJ41E5x5NKedctnYuOYlqKPp8djb1W0h5JExFV1by+RVK525fYCjn98j94Eb4Qnknx5wAAAABJRU5ErkJggg==","M4A4":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFEAAAAaCAYAAADPELCZAAAEyUlEQVR42t2ZS4gcVRSGv9PPSSSJgyEGjA8MIXHhEAxEEFEXLhRFN4ngQo07QdCFBt0JGhFEMCoIRl0oiKCIigRMFqIIAQfFEDSg0SgqKhoUjJOZ6Uf9LvJXvBTdM9N2TbrxwqW6qu6te+5/z/nPo2FETVJIakhaJekzSS9LqkmqMAYtl0PSakkTjFszgCsk1SXtlPSjTrc1ft/wu6X0qr9XG2DOYr1hOZ6TNCvpad/Xeu2nlmysWiZOEZH1AzAiBMz60ZuStgMPABdL6kTE0QEPpRoRnZIPehuwGTgErPfj6AmipCaQRUS7ZCGagAqPK0DLprILyA/uBgv4IrBO0hMemy2wROYx0xFxWNJOYNJrxhCiV4EWcHdEXO29PJTLL6meDo6Idi0i5j1wCugmQqgHCEtpNeB4RMwsAPArwJ09Xm339YUB1vtG0gHg3pJZ53tJW4G1wIWSmjlWhb3UQ9KrwArgcp9uCuLACmgQfwGOAnN+1vbz84B1wE0+7XxO3VrV9dpLsYpcxqbvu0CZJt0EvjA2xyLiRkk7gEuBvyxvIyL2hiRx9lsn5eMhW9e9PqQZ96MLgBngMDAFrLL8YdOfrvnUwxPKALSyyGayEgHMOay6DAedhlorgQngT2vonN/PAs0yNTEl9EeAZ60drWTMGuADmwQlaU6WaGJZ7WM7vj8sYxc4BTR8YClm87USACPxol3g8Yh4tI9DOWmz2Dik1ufrz3mzPzlE+nUILZe1qwLsiYjv+tBQz40N2rqSMkltSfPuebu/X8zpgLgiabekE5JaC6zR8XfbC7yXpP3LEOP+p3BkELPpWKWLc38ADkbEM5Jq/QLfiMgkPQUcAe4Cbi84mY7XaSQ8lxX4KW11SeErJXF6niyoTBC7iek2gI+Atx2qrMyzjog4tAiAuVD1iDggaZVBVA95DgHTwCaHQwtuVqfToO64amI7IewucB+wPyKO9zDXRkS0Bli7nXBRznFvAZ8DMxGx17n0awayzLCo9GJAP97LeeegpJ8lXZcC5t50ry5xrbwyssmVm5bXyXx90O/XJXPusRxzPTjxQJJijhUnKuGgHTbfyYg45upGZ0CNO+NYfGargceAK6yN1STee1LSJHDc4zebO1MuHktNzJITzn/vlrShWCkZtj5nD73F68wlGtiRdI2kjZI2SFovaa3vN0p63XK1C5r4/jhoIgWhTki6oxCWRBmF0iTE+SShjNxEb11k7j6PaxXkPejvjhTECvCtTemNiFhrIj9T93PPhgXQ3vlKV2qyJNX8HfgtKaxGMm/C99UexQeALcC2iJgfaaxowd+RdFlZWtfHlNcUnNe8tfGWvKTUy+P7uifR3px2cip42N+vjxLEWObv5x75+YTTWok5buj334rBqUraKunrApB5prQv19qRguhwZbk0MCRdm4QppyTNSPpb0q5U4/p8Y8LX9wp8mB/Ih5IuGuWfXBVzXmtY3utbOf33/5RPXUZa4UznHOCkLSFbxPdVXIoqlsDawFXAzc6URsKLy5oB5AcTEdOSbrMjSDOWI07bFkrZMufch4Hrk9JUJNnUJT1qgP+vNoyZJV77XElfFZzTS5KmJF1wNvh9LIC0k0h7LHFu3dcvJb0r6Xz3schi/gELjDIAfiUStQAAAABJRU5ErkJggg==","M4A1-S":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAAAaCAYAAABb9hlrAAAFlklEQVR42u2aXahUVRTHf+vMzL3Xr5sYWiJZVNcKo/wIQdOCygftE3qqB30Jol6EHiSiiB4ihMIwiOpBKbToISrBByswijDJSEtQirQky4/SvH7cmTsz59+Da9fmNJN35p57r0xu2JyPOXvvddZa/7X/a50xxqBJMqDk/SNgEVAHEmAfsB94D/gcKPhvADWg6v2UmQ2MgGyJmaWSpgFlM+tnDJuNkYG6XdnrgRV+XgS+c5nMr5PM0GPAj8Ah4EPgZ0BmdtiNbmaW5iDfUneczWZ2v6QuMxtkjJRVGOX1uvx4m6RfJNV0rr3exlyrJK2UVJI0PszfZjdJRUk3S/pY0nFJ2yKHGpNWNLN6UFoTVOm/dBT18yE1CeFK0gRgNTDDw9VhM3u0Dfk/BVIzqwJVSVPM7Pgw9FGTdJ2ZLZX0BLBsCDpo5oS5RKeipDlmtmuUUfQisNz3lhJwUNIyD3WJdwGpGzWJXjg+XwF8K2mxG3u+pF0+bigt9flOAG8A95nZRv/tLWCBK7vLQ6gyBgvhODagmVkltz1I0tfAF66sAtDrgg/4MSCk5td1P68DZ4G9wFFXNH6/HO0rBswCFgCXel+eecmyKyk2Rlg3iRQRehrJ+icwOQddXAm86e/zJTAH6DOze9twwBfcYXIxkIY5xwk3VBJ5ZT3yToApwMRMaMwjBASnkofKpAX0xCgqAXuA6cA0oB+Y5MftwDh/rgL8DvwB9Pizve6MwXkKwB15Iigo1BrA93yMz1pUdDV6CWuwl7XDQK2Nsdl58nKYrPNcEAjKkoYacNAp80T3vKsd8j050vu8lfoyMB9Y5XlYH/AV8BzwkqOs2iAEB/2FfO0uYANwSQ4yyiSddoFwhc70xZoppe4wDxvhbuB74LQLs93MtkoyM1MUl6cBR6IQlORgnLPAWmAucGMmrLY6z8Nm9k0k71XA42a2uo09aAUwNYoYadsolLRT0vXeV0o6ISmVVPf8ZNBzlYpffyJpUotVAyRNlXRK/7RU/26p90qUH2Vb3X87JukBOrwVHdZ7m3hXBeiOPL4G7DCzU57LlBvkCYqRE533A485o7vbWZIijx+MWF9XhgRkY3sJeN/MPvAEtRxRc2sDQfJ8ShnHaqsyEcbmZaAUOAOMd2Wc9HA1w43zGnCL338b2OMCDLQivOcGG/0F9gGbXLFhX4qT5bXA7cC8JkYCmCipCNRdjjRPz3VjabTHNjIQTikPAOu8WPkIsBBYZ2ZrJF3jyNg/xApDM88a56gsNmBQT3ttrWpm70q61mt1i6KcKm5nzKzmRurcJumMpAclzY3uzZY0z89L0f2SpKTNdUxSImmmpK2+n1TDfpd5ttePT0bPhRb2pp2S+nzOpJMNNDuuIcUeGYyThxJCUVbSYldwJbP5b3MHKEnq9jVfiYiKMsbaLKnXn7dOR1ExNoArp5Dj/Ikj6ApJhyKW+HclW9KsWB4/LpS0vwGrlKT1Y11pHi3jJKO1RoSeQN3rkrZEIc2iMd1+3JQJbcFAG/4PBkry+MA1FMopqY9zX0gDTQ6V6zVm1i+pGNPciIQcytDx0CZJ6smLLV2wBhrpBcxMZlYHXnVlhpJIN/ADcNQRVm+QowD8FNUK5WxOwD3AQ2Y2GBOZi6115laStCRTLahIOinp1ixTzOxbiX/hPJCpPpT9+Hynh7lk5AFkVUfPYFRM7QK2eNJb9HvZgSlQMrPdwG8ZVAW5p4b/N3Q8kxsB9BQcQc9E6BmUNOD/RbizGXqyeVeUN6VRPS6VdETSkpjGX0RQCzbyTX+7197ecXLQA+wEPvN/y1TPM0cK7PBSTvztp8y5D2bzRms/7XRETZB0g6SbJF0+VIrvSJws6dcGle1nJU3xPO5iiBtGkloYxvhQgdjjxOIpSZdJmh59yuhY4/wF2ULub+EQRtMAAAAASUVORK5CYII=","USP-S":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEcAAAAaCAYAAADloEE2AAADP0lEQVR42u2YTYscVRSGn1P9MYmTAUlIgpqIJAiKGEQhxoWbIIJ73URBBMGl7lxJ/AuzziYgEnCELFVwKZgEISGC4saPxURR0WxiZ3q6+3FzCsqyerpHNE2lPVDcpure0+e+5z0f9wYVUQO4F+jnqwmwBYyBgr+Ktd+jiNiq6CqAAHoNa0vpACPgHPAycAs4UOpR3wDOAj8BK0A315DrTBut6Z2kzau5n725NpgtY+Ae4ONIIzqp8BTwAXAkJw6Bb4CbwL6cUxpTfQa5gevAR8DDqasLHAXWcl1VCuCPnHM6DQI4D7wDPAusAwdZkJTg9CNiqL4CvJdG78nvcYdtGgLfAo+wWLGb9C/Ug+ktaqFQsiMawokGOlthBnOCWw27fgJzqxJKLgCcSah7IuK2+jRwKWO5uwhPJZA3gA3gzQqT6gDFf2wHQKebwLwOPDolud1p+SUi3lK/AF4AzqRNRQNLmcHmelrYDahfhvpVAjOsVCkWyJzvgeMRMVHXgCcy4XdqYT6vE3fLsnL+z6jPqOfVbXWSzzwy77zdytdqqHsXzGC6EfG5ugk8BzxQoWvMifAkKT+YMq+fXh/MadPViFAdZt9V7KIg/GsVHJD00j71nLo5BzNKdv2mbuS7q3+LEe3meFn9NKti+yQ9hLqqridI21MA2lLH6mn1SfWK2mvQ2c/xmvpY9X/aCFBHXUkmfZhADGvAjHL8Qb1fvaAezTVRBVvtqcfVt9Uj9TltA6f09GvJmlEDc8b5/ob6oPpUufGarl6OZ9UTlbNWq6So0H2sHgJezKZr0pCUi3x/H/A+cAz4NRNo9Zw2Vk8Ch4EysdpW1pSePpOsGc4o1evqS+rz6kpNVwn4MfVEaxNxAziv5uYHDYBs57hRVqK7XYoMg5H6OPBupTeZdub4MSJGWdmKnSpg21lTAESEmR8eysutnTZVhtEoIiZTO6kId/repoRcAPtnnHt6wO/AJ2UCX4bQQj2gflbrZZr6m4s5f2Upck6Oa3m16YwzVa/11ecfgLMKHKL5Ir16GNvMPOIygVPMuCMpgNt5U1i/aLrrwdnpiqIE4jvgYvY442UDZ5YMIuImUGTp/x+cWsMYLJH8CZBxUoBrn7B4AAAAAElFTkSuQmCC","Glock-18":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAaCAYAAAAqjnX1AAACXUlEQVR42s2XPWsUURSGnzMzaxIMGBENiEhECwUtbSWFRWzEX2C1IFjZ+Av8A4IfCIKYRms7LS2UiK0IayottAwRdL9m5rXYM3AdN7uTldzkwOWwd+499933fN1ruEiaAxaBK8Bz4APQBvqAASKOZEAO3AROAPdNUmJmpaSLwBvgJFACCQdEMmcJIHW2yorciOyNkwqXsjEfEwdqwcL9FKu7VBxASWoAW8AwcPlBkDIxs0JSBmwCTxxotsesahcjMS8/ZmaStOjZ/Qi46qUg22cmH/yVGEE5ug6sA0v+b5om0ADYArY9bKrkOwPM+9x74CPwCyiCsOsAr4PEreTnv34YFXUkbWgkhSZL6Xog6ZbvTWs2T/uaZ+O+N6mT7JDhxS7dsgV8kdQCMkl50Kl6vuZ3cG4xE0hJBpSSloGjDW0U7sYUOG5mQ/8d2j3r7fXwrB0nlJYfehc436A9ym1kwALwWNLloP9W8dYG5oDlWjeZCWRqZgNJp9xQ3qCHvwVeOeB54FiQNBXT99xWx+eGsxWuUSwh6Zqkb54w5ZSE6UpaiVKIJKWSEkmXJHUcRD4B4ND1mu8/NGW0XGf/A7Ji8bYf3p0AMHeW3/nB5gm35yymktacoeEUN/ddrzrANIarTdKSpM8N3Fz4+C7pQtWlYsVkO+gak6Tn+obvi9LXE0mrwNPgqjatJva8MMe7f0rabBCHIcvrko54HEe5uSfAudpbZ8fLp+tPZrYNZGamWCCbPLqqUOgDP2qgo7j7YYPrWOXql5IWqvoY841zB1gBXvhcPoHxr2bWBYjlaoA/AF3QpY07SgIAAAAASUVORK5CYII=","MAC-10":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAaCAYAAAAwspV7AAADBklEQVR42s2WO6ucVRSGn/XN7YwkFoo5wQtEUiQklSA2/gEVgoj4F7S0006IYCNYixaWgiAoWqSw8dJI8AaCWJiYBBFlgjmeE0/mzOV7LFwfbD7njHN0OOaFYc/svdZe13ftCbUCHgU+Br4GrgE/An8A7wI3+AtzoAbGwA4QgCxGcxbAEaAXEaNFgupm3r0VEbNm8x7/jpl6XR2pN9Rd9ab6m/oiK0J9Qr2s3lIfU4+rx9LmfepLae+W+nDqVF2gl9n4CHgSGAC/Al8C28AQ2AQ28nO3+jjQyQgXoQ9MgGeBB4EpcAH4Kvd/B04ApzLzG8ARtQ90UE+q36pn1W117npR5zpZcDYt9s82EXUzivuB88BRYJa9ULd6pFnnSzLURjczSlakLvow8nyWv19QLwER6tEs3wg4zm2ALvB0RvN/OTTJHnwe+AKousCZPKyBak2GXDAiliUG4GJEfN5sREtxWtSZZN+4MNQw1iXGYh9Hm88l4IdMwnbubakdoEK9kIwbJwvO57wY5Pq6OixmzzMpt7eEbdfVq+q1XEvmba8y4BrsJEVfyf1eS65SQz2hflpQuk39y+qZlu77GfRF9cPmvv18qoA3gV/yOegCN8sSNMoRUQP9iLgCvJ0yswV9dCUivmvZqYHXIuKRiDhX3Le4ySLiOfUd4BywC7xXGmyU1QBmWdZTRVBlH82AY5ntYTHPrgKvpq4RMVlWvVD7/ySUTnUiYp6l+QA4mUY7RdOPgTfywR4m3XvAyxGxo1bLMtQ22FUHan+/WqvdXJ9KYkyKPmrWn0pStPRj1XnS9MssIvYiYrJCJMPUmy+g/gZwOoMbqL38HhHhgZw6IOZLZlEf2Mx2mEbENAP1IAaqFctbRcRMfQh4Kwdsd4FonX30n9++VdBk5S7gjiVynWzsQ3GqSf8I+ATYAx4ATrfKuAuMsqnlsKHeq35T/H1W/axk6r9FdUBHqmTTnRHxM/B9K5NbOVI8NKciok5m7aXxQUtkvPJwXPNIoHh+6nXdt/ZL1o3b0qk/AYopxahg3r/2AAAAAElFTkSuQmCC","MP9":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEkAAAAaCAYAAAD7aXGFAAAFkklEQVR42tWZW4iVVRTHf+ucM2ecbMwY6WKaF/JSalBampj5YFQGBZUP1WMmFBhRLwUSVFQgknTHiLQXqSR6EYyQrlIREkbZg6VdvGKT4m2cM+ec79/L+mr1ec6cOeOc0RYs9se3v7332v+9rvuDYSZJ5u0ISW3hfS7Tn5NkzfBgZPF1RknaJGmPpFneVxhuYHKSCikokm6V9J6k1yXdmQoU+guDXKetSW73cZP1L70QZRkucIqZdw/qdHpO0njv7/S2y0+409t63Cmp6wxkvEjSw5KqLst2SVd4Xx7AWmhSRTMrhY0vBKYAa4AykAcEJEAb8DWwAbjRn28GTgHVBnImwPnADmAXkPN3A6V7fK3EuQDca2bvSmozs7L5SQ8VWPK5ymaWSJoB3AfMAm4BikCft5GqDtrZolSmkh/YQ8A6B6xcMLO+FmjSxZKeBhYAMwKAJaC9xpC8A1UJz82ClvgazVI+HJpcE7vNrOwaj0naEgSKiwxGu8znGAPM9Hclnz/fKvMeQkocpJ+ArcB+4JBJUosWrIaT+j9TknOVqgJbgFHOS4CfgRPA8eAIq4FLQI9zJdOXOlsLDjE5A5No1i8qs16W+xtHsIBeYFfO1SsPJGZ2HDhpZpvNbKqZdZrZKOBJYK9/l0am5WY20sxGAq8Fc5I/5+pwCly1RSClhxPXy3JSQ+vNW7nCTDKzDjObWnDP3hFQLDqC/+Q6ZrZK0kZgd9jcVZLmhhCeRoic9+8EjgTg0g1MAy5ocVQ7DPzi600Ma1fcXxZCJE5dwinH4QvgfjM75HtPTNKfPvArN7MeoGJm8lKh3YHoAva5JtXLRvcB3ziYq83sUI3ItxRYBMwFZgdnmT3ZSuZdW43vIlV886uAT83sI19vUdDyPuBq4DFgUoi477vcM4CNZva5pIKZVVKhf/dM81dJ10kqSupIU/awuackVSSdlNQbsuW9kl6StEbSwsyYYpZD3yWSvvQ5yzpz6vN2WagNi3VSlAWSuv37PfXqy5QKbhKXAyOBtpg3SRoHrABGAI/46/O83QB8C+wwsy1hTKp51Vo5mKf6HWZ2UNLbnkuVM+q/E3gzaEAVeACYHsxdwe8QTGitpE/MbLcXsPmMc+4ws62S/nDryLnMFuSuZkHq8ecu4FVJ3wMngQuBqcCc8P3HwFoft8nMelKNSTeTliJ1vapZVVJfMCEyAPUAN5jZ4Qy4VWB1P2lFarbfAUfjepkD6pG02BXDP7GSpHwWnAiSBcd2jXM2NM7z/l1m1h3NqZ7G9JON54GypPnAyuBLCJr6lqQP/LkKTADuDlrzDtANXOl+NPF52oEnzOyvOps297XXAqObKSG21bDvE5Juk3SZpAmZ7wvOg72/Mfd5632t6I8OS9rszyX3V32h/5SkOZLaJeUlzfbqPQnzfChpdK07pnAVszJU/ftjxV9P8LGSjjhvlzRf0ogaVx65wQBTYx6TNM831pfZ4HTffJekxyU94wHjWUkza8g1RtJnPjYGgCm1HHAA6cUA/IGGIA3k5FtwIxk3FiPTuCbmSy/qbvexvWGeiXVAKnq7vhmQchkzsIwBy8yGuoy4HrgpU/G3ea5ybBBXs8Uazn98P9k4wKUhwW1495SLYLQAkP8A7uayLiSM6cYOAivM7FjqXLPcz9S9Pk8hOPZHPRlUjSAU67QScGBAIA3jD4DEQTrukeiY50irgaNpGdBEIQvwm3MhvJvnud1pNxNuVq/43ts9ZWAYCu+B+yR/XixpbfALS5u9fE8TRY90z4eImNKYflIQJN0labmkaefc5Uz8IyJpiacaY2s52gHMlTriZcF5V53zjZz+OU1DJWSIcHd4TRnpjUZj/bdSQ5dzVhA1s4prTSpgMsigkfqvH4FtwGT/a/ID8HIjGQa6yN9eHqAnvjFcRQAAAABJRU5ErkJggg==","Desert Eagle":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAAAaCAYAAAAnkAWyAAADGElEQVR42sWYv4sVVxTHP2dm3iyYVZIQIY0GURQkxUIaSbFtOkGLpLDyDxAhRTr7bUOwsbEK6JImIRCiYdmIId0KoogRXFIkJKIGV2R/vZlvCr8D4/Dem3nLe74DlzvDnZnzved+z/eeO4FNUgBVIyIKSb8Ci8BHwCsgrcZH2A6g2r1qfQCl2xztVgKbvp4HEuAL4DbwMKueighVjiTlki4An3j4T+A/4L0ODv8CtoAe0Ad2gcLXPQdhA1gwuMR+1QCd2eea3/8UOFx7ZjkkRURI0n7gY2AbOAd8WYuYhjgZZAnTs/oqKvNSCjgG/OAZv+vZJjUqqU6rDg7axmNMwHXfAZTJa5YoBR4D1w18awC/uzqLlpY0gjLO83VbTcz1JCJeADfMt7RDBGdlpfuvskZUM8+yP0ak98LZvVrUFOtRZqXZkXQSuGyupxMGHGNSr20Cq0AZkg4D94HcbZDTLrbZuM8sjXglfwZ+Aa4Bnzt60QFohWUbeN+i8hjYRtKSpO8k/STpjqQHknb12kqNtsL9N5IS7xGp+/Mefypp8a1lhKSLkp57EqMmsOP+SLVLS+r5+pzHzvq+N2mciaREUlpr70TE18CKl77oOOE5b/lzvj4IrAN/eDXKSYPPIqJsgCjGSK4q849GxPqA73wfEfck5RGxM3HwDYcJsCvpuHfctu2+KhuuSPrRiZm5nvkM+N0F31vhem7eLpmv/Q7J+q+ktVqSS9KmpG8lnTAVp1LvZM0ccJE27/thmr/rdy8By8BLy2Lu6JfA3xHRrwq/aUe9Uokzkl5YZYYpzZb70y3fnGaF+Ubkw/xcAA74UJG3vD9vgOkAVVJTDKYCXlLqEuEUcN6JmI5I0szU2IiIUlIybaCjDg4V0KPAIW/Fo8CnwFPgnwkVXHvepAIoJOU+q6pFHit6rADrpk05E/BWmMJRvzBEhQbV079FxDOgN3U16XDe/AD4sHb8a7N9XrWZHVqSRvIWLbVMdQAvgWJWER8EPunwXya8GSW1Wn1mFpbKrPZD56qjnzd4/gS4B9wFbgK3rErlrFbgf0TUNjAgTwjaAAAAAElFTkSuQmCC","P250":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAaCAYAAAAwspV7AAACSElEQVR42s2WPWsUURSGnzMzmzUbEDEgftVirVimsPUP+FGq+QFi6Q9Q7ATxL4iIhSCihVilCChCII2inRItA7q7zOy8FjkrN5uZndmPWfPCZe7cmXvuuee858MAJK0Aj4BbQArcBt4CCZAxO+SjaB2gBeTABvDRJCXAE2AdGAAxzSAFbETJ4XmRGwAAk3QK+OGaRr6ez1khG7OuQNEIkElqAT3/EHEIELnbDoUyjoFJSkN//kfk7sLYJGkBB6qCbwp49ywp2GgNKGU1vl8DPgC/EuABcAdoN8EPYAt4B3QLuJsDR4AXZra57waSzgJvgJPA8TG3G6aNb8BrP7QVpJDM918GVoEbZvZSkplZJU0kWfgS+/O69tBTMfr+vH9AyH7h65Ke+rw9TUoAiMsOKEEGMOb2PaA9ocx/SHzjAOgAFyqSaOQBcUbSRWDZFbTgewxcAbpmUwZ34LpLkn5LGvgoQh7Mw392Jf30kfnaXZe7NLGlgvmSW6tfEolDku8CD4GvbpUMuAqc93+eA6+AT0EhnthSJmlZ0mO3RFpiodyJfq9Axoqk0z7mU7IknXOzpxVu25G0NowqSYm3PqPykmlJHrqv465Ix9SlGPgCbEhqm1m/ML/sReVMjWHiRL9Zs3XJzCwfjag6iXHSPNUB1ipqVOzW2myoCTzg/1VJfwIyl/Hpu3MvmhuZx1gq8iSoimreNbPPQGJmedNK1el3AHbcQs26LlCqTvi+dwtpUUrVwYmFNcaSjkraKqhtQ6SStiUdmyUhToK/cQkA7ZdDAzAAAAAASUVORK5CYII=","Galil AR":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFsAAAAaCAYAAADYMiBQAAAE4ElEQVR42u2ZT2hcVRTGf2fey8Sm2NSaUrWKirSK9Q+KBbsREa0IQTAVhbgQhKLYheBfaqkbFRQRly5cFKUUpSIVqwsVRRE3tVApVqmiWOkmUNE2TTKZmfe5yLnl9jFJ3sy8qRnohcf7d9+9537zne+ec8boYZNkZiZJI8C7wMfAPuAfoA4kgNoZ08yaYWygUrLJCdAErgY+AK4BNprZr5IqZpaxVJskk5RIulhzbdrPL3Qx5qCkG3ps98Nu51+SbvJ1VDocq+IYJGkvAHaGVOaIaDVJNzuDUyADtkuaBH73fpkzasrvW7E99efjwFZJ24A/IjaW0VKgAWzy+xnguNtUldT2PGY2e+baARooEe+GmSkC/05gN7C2zDkcmJ4SHPgXeNPMXumCfBcC1wOTJmnAzOolMjsF7gWuA1YCTwAjLRZSzzHYIva2JIl7QGDgbLt6XwBci7Q7ie7fBv72+6JzBntvBG4BTgZmb3NXzOtSxUGp+scJUHNmDUbGhL41H3gLsCp6lxXczFRwEWV6SBjTIhuCvfH6u24m6TvgdgeyCBBNNyZpAUITGIgWkjkLKyUzsBfAa4HxZgsA3vB+NccheF7iP1jTJMk7HIg2qMw7DvqHw647QwWNVsQWlQxKJ95ACy87DTwGHHL7gpQOep9R4I2IKLcCkxGpWtmRRevPcnOCpJOSDklKJS2XVJU04CGWSVomaaOkuqRMnbX5vqtJmvJjZpExpiR9JOl+SSslDUv6TJ23FwvsP6OSDpQVaqbAj66vAqbNLIuSkVXAO8CY958ssFGcAE65+2TAFcBVOQY0gGngDuCwj7cW+BTY4H0qOfc+ZmZjwTYH4zcPzyba9IIG8EMUiTVahGwys/3A/iik7Tp6eN5Z9aAzOfXn6yT96SyYkPS9pNEO5/giYnjdj30t+j3k/WZaeMUvbt+ApMT73yZpnH5p7pKStMMXc5GkzZJO+PO9HiufCe08I0rnOZLoSCNgJKnhR2ivSXpE0riknS4V0znJCucj8+UEi9gzn212rrFOo00vRBevA1tdCt4ys6d9QVVPWBptZpOppKdy9YdvgIPA5R6Hm0vIq8BlwJMtZGq5pEuBiUjmQpba7Bdmr3HmHJT0nl/vlrQ5gBykpYs5JKnpx9eS1kTv1ku6NmfP5/5NPbeZPholTv3XJF2S26X3SBoKRZ8uayRIesBBnvXxX/bnK+LxPfpZ4dc7I4BjKdnVg/LCOZWRuL0PPA7MSKqaWa2EOZ6NUvHTwFF3/ykzawRN94JVkIahXNISkqgro2y1L5m92hf5ocfUHZcT86VFP09EXvOJRxPVBeoqISqZdEZn0ab6ZbcetxRqzssicKyEMQNouyI5yCTtXQisKHJZL+lwpPWKQH8p2rD7qlU8eD8rmSlx/GEvAVSLVMzMrClp0MyOAj+dlerOJR4JsCH8KH0Hdj5rKqW6NafFZmZjHkZ+669G2iggTeX6hvLrXcB9QL1vo5IeSVQaXW+X9MxioZsnHBVJm/xvqVhKQma5o6+1u4eAJ+3qawBR0ldR5qkofNzjme7/kgmWIiO9aGbWNLPZUE0sWgb1DfvnnJ2pF7C2AHd75nheSkqIkBJPuI7nMtDA8Hv6Optcinov6VgUp9e9SrlO0gXnUSqf4SOSTkl6TtLqfl7Pf/vakDGKu1N9AAAAAElFTkSuQmCC","FAMAS":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEkAAAAaCAYAAAD7aXGFAAAEiElEQVR42t2Y3auVRRTGf8/e7z5fSWFBCZVQFkEXUkJXXUSXRQZCiH9AEIQXIYRE4Z1gVwaReBEWRUl0UXQTEf0BWhko2hfZh0FamnZMz9d+99OFa2J83e8+7z5fHlwwzOx3z8yaeWatZ60ZscxiuwBuAfYBW9NnoFftClwC/gXOAxejPRnlcvz+B7gAfNhAfQtQtGclnV/IHpRtph2T9u8ozVX6qrLBfu1RSVO2jwAPBzCqjF0pOQU8I+mw7baksunAIgOhBMoBFtEBukBbUrfh/FO21wKdAM9xECXwGdCusaiBxtmwXwt4MuafA+4GHgMOZ2toBpJtxWI3Ao/E4FbF2i5LejdOoGv70VA6GQu4BEyHS0zHwsaBKeBF4MFsrklgp6T9K+Dqe4Cd2QF1qh40lCWFj987QGEp6X3be4FtwDpgJkC6GABdCmB6wAgwCzwUoPeiPi1pv+2bYuxyuJ5C3+4AKbm5FzJZEYM/CYCmanipBbxlexuwOb51gdEoa4bgv1T3ssUvF0itOg4eFqRXgCdi0+Pz9N8cp9+O4gGkXY0waYF32X5B0msr4G7JpdtRl0EviroZ4rbn+rheHWGWDfo1kS5wcjEu0NCa7s/0FcB2SW8MPZFtc+OKMwtOeVgJnInSCbecikC0Png2jWsBx2V7uXihSRhfbqnb1181QWMUuLWyzj+KFQQoz8OUBY3lBNYZgZ8DfgK+BHbkyXHGYWuB54D7AsgfJR2Q7YsNo9NirKab5SgL3Wh7SKCURdACeEnSngBD2XyJF9UvSbbdLoBvI4kcRnqxcWLzmmeTHeA48Hl8uxnYAqyt8EYdp7SzqNoa4mBSFP4UeM/2WMrAawBJuhJwllQWkXB9XJNX9AMnnczIENFwN3BQ0vGKaW8ZEDETV/4Zl+OjfaxRFWuo6u5E/ZWkU7ZbknoD7qfODv8q9CZ8RUpfK6XtblYnOWp7u+1dti/Ht15l7FzUuyq6Orbvsf277dlsXDfGJH3pv2O21y9BztRazOB1NZvsJydsb7K9IRt/tA/IM1Hvtd22PRLgyPbttr8bcDBV+d72RtuF7bGYZ75SREnt1mIALuKN5giwqfLfBeBt4PVgfAGvSjoX4IxJmo68ohrFOpEsHpBU2v6fFG0/CzyQJXipfgo4Fm68BZgANsSV6UTww/T1y7jsO2zvtv247XHba4Lk+pptWMRI1F9nVtHLrGNH6peNHbf9Q9Z3LuqDtkeX1EWWUIogrDPAyzWgKAgttXvRRuqbsKdINRP/u6LvzixApAj0gaSZ9GaV9A0i2ZWUViX81TH+Ne15IiBZ7qUKgGNZJLrmhbOhjpW3pCEAmC8TzkPxRE2C18oe5saAL4BvwrV6rEJpLSXQFUvql0fNAr8FOBOh/01JvwLFanGv+Ta4EDnbwLqStU7Z3hqvleuAp4Hz4eolq1QWA1I69V8yq0yZ7kjdA56kQ8Ch4MF3gLNB8L0bEaQkp7OrgQKck8BHWd501YUxAC0l/bwEnLiKX7OubBbbz0e+87ftfZFz3db0qjDMM+r1kv8AFkJvf3BMcpkAAAAASUVORK5CYII=","SSG 08":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFYAAAAaCAYAAAAtzKvgAAAE7ElEQVR42t2Yy4scVRTGf6eresY8iIkyJFFHMsM40QQVH8gIKlmYjSIi4iIYEQRF/wDFB2YhUUHEuHAhRt0IISCKD1y4UCboIjBIdCGJeRhIlIBBIxOdyXRX9efmFN4U1d1Vk+5hZg5cirp176l7z/3udx6wgCLJJEWSVksakmTeX/NvJmnQny/qf7klm9tGZ831RiwSiRfIoBEQmVlD0iZgL3A38Diwz8xawdjEzCSpEaiYNTMBqaR6qNvMmoCC+Tflfw8YcMzMZpeVYc0sdaOsAbYC23zDz0k6BPwGRN4XSWoB6wMVI5LOAC0zO59HLDAMjAFrgU/aLONO4KCkWniQSx2x292gdwFXB59uAN4B/gwM2/J1TQTj3gSOAHOSJh2BNSAFbgRuD8Y3c79vAAMF/UtXAg49oIslkZRKaql30pR0oaB/zp+3ZXy+bKigQEIn0/KWl5q3cIwKxmbjoi77iZ2fa041/aW/bmiryKVqo+tm4AlgNbAF+MuNsBEYBwb7uMeMCjab2dGFQo61M2A7I82HDtzLR0DdDfoYsNuHrA2Q2RdGcgCdAi70CIzRpSD2DeDJCgtvAa8Cb7sBm35AYSg1DnwKjAArWcYSS1qX47PYjXKHo6msNIEzbsi5wJirgCuB14BH+4DGVhjHdhnbEUxtgJe11JG6y8x2l3Fe3wKXASu8L/XFrq941RrAkKQtrmvA9bwM3N/HK97vbKsVHIYBH4YU14lj1cNFzAEJsCrXn7gBLIeeDOmq6MAyozaBSWDa38vs5Xq/neqC0hRYB1wV7CEGRs3sZDfDxkH4YmX5t4MMOlKTXOgTd9A9MA+kpt72mNkLFZ3pdV2cpQU+YwPwErA92FMpIMYlPbIClFiHK9MMYst3PVsy4HWnm0zHtCO4AbwP/Ay8V9LIWWb2BfCKpEH/X6nY1MyOVTiHXyRtdMNWi31LZjWtLt+SXN/HYRgn6YT3p/78ydt5/75TUsN1dWpNn39C0rCkuGpFK6uClWiDrv8RX1v2701l4vyymVcKTLl3H8uhPHMgPwDPeKh11GPXlWY2EzjGbN7mLFOSdMTfy96wU8C9ZnZaUuQFnqoFobLxdyLpX19rJcSWMeyMG/Mf4EHgo+BKAxwCHgbOmdnfwcJiM5uRtBMYCq5xDTgDfOecfAVwOMddKuAy87VMufOoe8mwHzWOmht1FNjla06CPfSEChJJZyVNB8WOc5K+kXRtWB/1gnNWtK77dToc6JGk3yVt8zEDwbz8VazlWpQVUPpdSAn+MybpYI4Khkul/BWqRw1JxyU9W3Rtcpxa9769BTy8LxuzyCtzkXPshPuDzAeM9YJjBXzvHPulmb1VFBwXxHORmTUlXROERzEwC3y1BMqdNTNLJW0FvgbWBJ/PluXYuQ6FhikzuydEIpB2qsD7SSaSNnhRO/EwLHXDtgqShEVnW3/+AexxH9MA7gN2SPog4Nx5UcGvki6XNCApLnva3kYkfVag8/mlQAVt9vZj2Uw1Bp4K0sHYkTUB3Op58QyQlC0jmlnLr9JJSU97NWuF628CB4IUcbEb0jx8rPt69wPjkh4CPgdUqbzq3ny0B4taFpIlIZJ2eHRwuuse3YNf1PIKL8UJFOivLUHD1v25P8ggH+gU+sVFQbafhFXNaopooXKOvTglQ2ZWtZsGJj06Ktzff/y9B8Ig3S4RAAAAAElFTkSuQmCC","Tec-9":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAAaCAYAAAAjZdWPAAAC3klEQVR42s2Xz4tWVRjHP89974w1Ei5Eo1LRhbgyCCEoJCLctZAQKhG0hVS4qZXZQoL+gHTVJnAlEjFBbXI526RVi2gTjDjjamAGHLXm/fVp81y4vNz3nXecq84Dh3Pv5dznfM/3+XkAUDukqC+zTVE/UbvqqRZ0FaOYSjUiYpALvgCuq18CC0AHGEypvwCGwDHgGjADfKU+Bh4CAbgFvCXQBz4GvlbPA/PAINRZ4DDwEfAt0AVm2VnSz0Psj4iVUAP4OxnqJUP9LbJSl0gLRTI/2Cbgoqb3KrAQ6pmkfQPYxc6XpQJ4N9mY3eFghzkfLIHVNKfPEZBT+PQMcBH4q2z4MZ4RyEgwgynccgb4BbgREYZ6AFhqUDjNpnWzxZQHrjLBj8BnCbg78m+dwGqvR/lvUUbEsnoFuATsBvZOmSEqZcUWGe4Aa8BiRDzIOrEV1xyMVp8T6rI6yNEkQ/VxPq+qd9Tf1RWnk+/UE6OV+ElL5Vw+X0nlGw0b9nK+rX6v3s3ihHq2dqhxh71W33P7kaG7cr6cm/zXsGlPXVNP59qL6oWaDidYqJ9ryu0CLmtm6qrHgQ9qwdK0XuAd9WgG8IfqS1lRJ2YfdXdEPGqD4VA76h71ZrLSHcPWwCeXflv5sgCK7PKOAmeAfzMvTuoDfgDeBE4Cb+X4Y5NC0VHPVUS1wfar6uIYNqv3f9TX1CNV8I3omN+E6aG6rw2my/TnQ9me9hpYLjI3/hwR9ydE/+fAi8AB4PVaHq/mWxGx0k491bnMFMOGdFW9r1UBO8601Xf1vZHsU+n4pk2ffiNL6bjyPQTuJSgnVK8i14yLh06boH+akKqqMv1pgp1YbjdZU7QFugT25wWgAlhvfArgz4i4UwP13KWsjSa36AGrahkRfXaIlMD7adK9wGnglXw+kr7+dq39fJqN/vSgI+K3Wgb4FXghr15zmcI2IqIN0K1dLspae2hErAPrT9Gqrcj/RQz8DZ3YSAUAAAAASUVORK5CYII=","Five-SeveN":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAaCAYAAADSbo4CAAAClElEQVR42rWWTWsUQRCGn5rM7iqrUQwhIOInKOpBEARv3sRD8CL4D8STh9w8eMlNPAh7k/wCf4AnERIiCOJJo+DFIH4hCSKRiOzu7Lxeqpdmmd1Z150Xiu6Z6amuqq63qpGUAEi6JOmTpDuSDkiak7RPUtOlRgkk1f3/TNJj1xNkVlJjYH0iyQDMX5wH3gI5kPi6HrAF/AFqwAvgrq8ZRA3oAg+BG4CC7ggdYA1oARtm9jkyyIJVDyTl7kkuqefjJMijsRfJoL5bki5IOgOQegRm3YNYcM+I5nnJ6SRRRK0gKkGHgBV/tytpMfWHbIhiG5gn/B8MmPF51w1qAq1gyP4xvJ02atGe9xJPymfubW9MJT0XTcEgA54G1jSBDeBYdNbD0HVvpoHMHTqSeB3pAEv+wUo8rQHrwBtgtyCpKUjQrkvmewVJgQYgQkHxgrPu1MqGUPO3pMuSTko6LWkpWj8J3V9LWpSUplEEDgFzBWyJMQPsmNmmG38iCnFjyD/fgWXgC3AceO5HnwPbZvatX2Z9vOhedUq82JL0SNKqpJ9jeN0qaQsJQGpmufeRm0OK0CDmgdvRc16SHz98w9TMsrBx+G5medxrFoCXzpp8BGvawH0/oj0e5ieedMOKosxsPJp78o1K0oDlqqpbiMhh4GtJjeiaWT2wrK9gXG9LkLrisyPYElr6qqSamXUrCYlffj44Y4pqQWjh1yvtPJLmow2LEPLmYP8SUwESYGcEBeVrtkPuTCsnigy55mORp7m/XwN+VXkyiRcyjYgIwIqZtas6lmBI3b3OXFRgyGbl1yRJpyR9LLgA9yS1fX6uykSNjVmQdFTSFUmvIgYFOlduiEmymAmS9nofyYGrwHvg3T/1jAnwF0EwDGbmV0h0AAAAAElFTkSuQmCC"};
+const wIcon=w=>WICON[w]?`<img class="wimg" src="${WICON[w]}" alt="${w}" title="${w}">`:/Grenade|Molotov/.test(w)?`<span class="wp" title="${w}">${w==='Molotov'?'🔥':'💥'}</span>`:`<svg class="wi" viewBox="0 0 64 20" aria-label="${w}"><title>${w}</title><path d="${WPATH[WMAP[w]||'AK']}"/></svg>`;
+const HS_ICON='<img class="hsimg" alt="Headshot" title="Headshot" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAG10lEQVR42p2Ya4xdVRXHf+vcM+3M3JnOlE6hEBorCh9QEP2gH3xFTRQ+GSJI4oNQfEQFEtBEE60JiSY+Ex9fiBoE0YSIlYSI2rTEGE1MMBEhmoYYqTBKeRRK73RuZzr33Pv3w/z3sDmcO723Ozk556yz9tprr8d/rX1CUkSEJLWBGaACTkREX9IMMAsMgJeAPjANtM33kvma5g6T1x6Db1BGhHh5tKwMkgo/rwIrEbFmeheYAkqgsNJprnzV5Z0tjfAOwh/DH05FRE/SHPA6YDewBTgFPAc8Axy15af8LSmqmrxRaC3T+t54kkVp87aAkxFx0la6XNJe4EorOJHtTMCzwN8kHQIejIgjmdV3mL8TEcuSAlhooO30+ksRseT5u4Au0IuI05i4Q9K59juSbpb0ol4elaQVDR9PSfq057Ysa5ekWUmlpC2SFkybqdHO97wvSvqan6+VtNvPZRJa+n5ntvATku6X9BVJd0g6KOl3mdLpSuOXkrZtmHld3nzaeFowp0makHSR598l6ZN+vs2b2FUCREQl6ZvAjXZfCRyIiJsknQcMIuKY4/VFYKuDOiXSAPgwMC1pH7ACTJqvknTCPG2jQCXpmYh4TtIicC3wFuAnwD3AXQ6V9biR9K7MMj+2+c+zS2Z9n5M0JelGSSfMP6iFQhprvlZ9nfK1kr0fl7Rf0gesx9skfV9S25beKqmFF30wE/6opHOSgtkmzpV0od8XJB02fz+b26/FZ3/INajxPWI9bvcmFiX9S9KXSuBi4B3Ozr8AX3DIxLouKjK8qwwrHwEutNsiy/CiBiEFZx4HgB8aqP8B/MLIMg30SuASYM6LXQE8ANwcEfslzWfIv+R47dmy09lG6iM8527DRo5xE16rC/wBeMjV4zLgVuBjEfGUpMmEg6/Pdt329TlJfzQwzwBFRPTs3g8BlzoRZmrgm0ZKoPsj4vf5B3ugFxFVlsm3A3s873FJVwGHgQkkfasW5Gu+f8YCEnZdYAA/4O+nJfV81WOq5/u9VmCH4WXO9/S83WvsM/9bJT0sacnJ2S6zMpPH0QC4RtJ73Sx8FvgR8H7XZlzeho3k4sszmZNuBrpZJZmQtBoRX7dLl4HrgTelqlYCz9diKSn8vmzBf9r18kJHgHuNmZcCH6+5O8mYMxb2UsLUkg6gkFRExD7HfBkR95kvSmdOU7ArdTZWrm/BjwJXA4sRkTqf/cBvrQze9J3Ads/pOsmmXZf7QMfyp4CdkuSWbuAmZSswSAp2vNs84HNLKKMdiYgnJe2UdDwi+sBjdv2kXXsV8LTvlSvRYF0HypTV7oaS1yqgMm2jqylcup6sKdIUU6nf+6Ck7zqGzpf0HuDXwHxm9Q7wGuDfwJpLYAqRJVs00WigJb5lJE1KuqeWfaOM1VrXk5e+RTcPl6U2yijQ9nu4Mm1KS9lVAX/dBHSbRt8xck4tVtP83W4e3pDhYpUlyYZLN6NJaqVs+rOFtEZUMG/vm0ramuW+XVLL7nrBvAvAtoxGAy3xzRc+kxwGFrPdjjJiE4snKJkyTz9lvIO/HJVWSpp1STviciPGG7K18rNGsuzD/rbNmSknEE6IOBOtNLz0DLqchYKRQUc+OsBvDBuTDotOrZKUNVp+dukmBXteZPuYiZKs1AF+DvzdwkvgFuBPEfGspK0OfA2pJDmtnkxRAse80GvHUDBZ+QXgjW7dZwDZGqeAY+5cZoHjXnxYJanTEt+gcFDudvwxYpMZWa39cjqdpd3bG49YORqCv9VAK5r4wjBwNfCrrI8bdxwFDgL/A94JPB0RH/Upr5936Gc4wL+Kr/TDm7PT2bgK9oELgBsy2g3uvpcaEmJ5VFoyY9gCrwjcMUYC7Z6fnwAOSpp2A1Fkrs8TYhRahLRhxTuAT5ipPAssDHvgyog4ZPdOZueZFPzTDUnSHsZXRETl88angJ9auWoMPFTWfVwfEYdqh6QytVu1JBk0VJJX0dLfrcKLrALfBm7LSt6ZYjJZ/O6I2OtzRq9hg1GjxZDC8Aq+wq367HpMRxURnwf2ZfW0GgFyBOxxuGxx4cfVYMXuGpsWEd2NA3k6pBv5vwFcl/2n0RC3Kzu8X+GYO52SbZMKka87lE/SBg4qC9a+f2CuSNoDfAe4pgFaipqbvgp8L+vpcnmdEZKkiW9QREQToq8al44Ce322+Bnw3wxawoec+4B3Az9wqPRGqBDFOJVkZpPftKkZXXJXsgu4yHWyC/wn+7s6Z8uN+tt3JFr4/1/LSiw3/MbtOvh32vzHsuPmvJOsExEnPXeh1kY1yRuJlsw4aMjKQa2qpEpRAjPuVgoLq2pnkn6tI2qSNxJNUvwfne1r33hKLy0AAAAASUVORK5CYII=">';
 const COLL_ICON='<svg class="hi" viewBox="0 0 20 20"><title>Collateral — two kills, one bullet</title><path d="M1 10h17M13 6l5 4-5 4" stroke="#ffd35c" stroke-width="2.2" fill="none"/><path d="M6 4v12M10 4v12" stroke="#ffd35c" stroke-width="1.6"/></svg>';
 const BLIND_ICON='<svg class="hi" viewBox="0 0 20 20"><title>Killed while blind</title><circle cx="10" cy="10" r="4" fill="#fff"/><path d="M10 1v4M10 15v4M1 10h4M15 10h4M3.5 3.5l3 3M13.5 13.5l3 3M3.5 16.5l3-3M13.5 6.5l3-3" stroke="#fff" stroke-width="1.6"/></svg>';
-function renderKillFeed(){
+function renderLiveRoster(){ const el=document.getElementById('liveRoster'); if(!el||el.style.display==='none'||!simResult||!simResult.positions)return;
+  const bl=(simResult.bombLog||[]).filter(b=>b.t<=playTime), car=bl.length?bl[bl.length-1].c:null, kills=simResult.kills||[], hl=simResult.hpLog||{};
+  const col=(pre,title,pls)=>{ const ks=Object.keys(simResult.positions).filter(k=>k.startsWith(pre)); return `<div><h4>${title}</h4>`+ks.map(k=>{ const id=k.slice(pre.length), ix=parseInt(id.slice(1),10)-1, nm=(pls[ix]&&pls[ix].name)||id;
+      const dead=kills.some(x=>x.v===k&&x.t<=playTime); let hp=100; for(const e of (hl[k]||[])){ if(e.t<=playTime)hp=e.hp; else break; }
+      const c=hp>60?'#5ee08a':hp>30?'#f2c14e':'#ff5a5a';
+      return `<div class="lrow ${dead?'dead':''}"><span>${k===car&&!dead?'💣 ':''}${nm}</span>${dead?'<i></i><em>✕</em>':`<i><b style="width:${hp}%;background:${c}"></b></i><em>${Math.max(0,Math.round(hp))}</em>`}</div>`; }).join('')+'</div>'; };
+  let mine=[],opp=[]; try{ mine=rp(); opp=match.opp.players; }catch(e){}
+  const h=`<div class="lr">${col('me',MY_TEAM,mine)}${col('bot',(match&&match.opp&&match.opp.name)||'Enemy',opp)}</div>`; if(el.dataset.h!==h){ el.dataset.h=h; el.innerHTML=h; } }
+function renderKillFeed(){ renderLiveRoster();
   const kf=document.getElementById('killFeed'); if(!kf)return;
   const ks=(simResult.kills||[]).filter(k=>k.t<=playTime&&playTime-k.t<6).slice(-5);
-  const kfh=ks.map(k=>`<div class="kf ${k.k.startsWith('me')?'mine':''}"><span class="${sideCls(k.k)}">${nameFor(k.k)}</span>${k.a?` + <span class="${sideCls(k.a)}">${nameFor(k.a)}</span>`:''}${wIcon(k.w)}${k.coll?COLL_ICON:''}${k.hs?HS_ICON:''}${k.blind?BLIND_ICON:''}<span class="${sideCls(k.v)}">${nameFor(k.v)}</span></div>`).join('');
+  const kfh=ks.map(k=>`<div class="kf ${k.k.startsWith('me')?'mine':''}"><span class="${sideCls(k.k)}">${nameFor(k.k)}</span>${k.a?` + <span class="${sideCls(k.a)}">${nameFor(k.a)}</span>`:''}${wIcon(k.w)}${k.hs?HS_ICON:''}${k.coll?COLL_ICON:''}${k.blind?BLIND_ICON:''}<span class="${sideCls(k.v)}">${nameFor(k.v)}</span></div>`).join('');
   if(kf.dataset.h!==kfh){ kf.dataset.h=kfh; kf.innerHTML=kfh; }
 }
 function drawFx(){
@@ -2563,7 +2741,7 @@ function playRenderFrame(){
     const dead=deadMap[id]!=null&&playTime>=deadMap[id];
     const P=simResult.positions[key]; const smp=P[Math.max(0,Math.min(P.length-1,Math.round(playTime/0.4)))];
     const hl=(simResult.hpLog&&simResult.hpLog[key])||[]; let hp=100; for(const e of hl){ if(e.t<=playTime)hp=e.hp; else break; }
-    placePlay(playDots[dotKey],pos.x,pos.y,dead,actNow,smp?smp.f:null,false,hp);
+    const rlNow=(simResult.reloads||[]).some(r=>r.k===key&&playTime>=r.t0&&playTime<r.t1); placePlay(playDots[dotKey],pos.x,pos.y,dead,rlNow?'⟳ RELOAD':'',smp?smp.f:null,false,hp);
   };
   Object.keys(previewPlayers).forEach(id=>upd('me'+id,id,simResult.myDead,id,previewPlayers[id].team,id,false));
   Object.keys(botPlayers).forEach(id=>upd('bot'+id,'b_'+id,simResult.botDead,id,botPlayers[id].team,'B'+id.slice(1),true));
@@ -2623,7 +2801,7 @@ function finishRound(){
 document.getElementById('playAgainBtn').onclick=()=>{ match.phase='igl'; match.tacticId=null; renderPlay(); };
 document.getElementById('newMatchBtn').onclick=()=>{ match=null; renderPlay(); };
 
-function renderPlay(){ { const bp=document.getElementById('buyPanel'); if(bp)bp.style.display='none'; }
+function renderPlay(){ { const bp=document.getElementById('buyPanel'); if(bp)bp.style.display='none'; const lr=document.getElementById('liveRoster'); if(lr)lr.style.display='none'; document.querySelectorAll('.subbar[data-key="rnd"]').forEach(x=>x.style.display='none'); }
   const qa=document.getElementById('playQueueArea'), va=document.getElementById('playVetoArea'), ia=document.getElementById('playIglArea'),
         da=document.getElementById('playDecidingArea'), mb=document.getElementById('playMapBox'), ca=document.getElementById('playControlsArea'),
         ra=document.getElementById('resultArea'), ev=document.getElementById('evLog');
@@ -2645,10 +2823,10 @@ function renderPlay(){ { const bp=document.getElementById('buyPanel'); if(bp)bp.
         <div class="vsx">VS</div>
         <div class="side">${crestSVG(t.name)}<b>${t.name}</b><span>Team rating ${tS}</span></div></div>
         <div class="wc"><span style="color:#5ee08a">${W}%</span><b>WIN CHANCE</b><span style="color:#ff8a8a">${100-W}%</span></div><div class="odds"><i style="width:${W}%"></i></div>
-        <div class="hk2">Official league match · Mirage · First to 13</div>`;
+        <div class="hk2">Official league match · Mirage · First to 13</div><div class="note" style="margin-top:8px">📋 Full scouting report is in the Scouting tab</div>`; document.getElementById('scoutBox').innerHTML=scoutHTML(t);
       const fl=roster.friendliesLeft??2, fb=document.getElementById('friendlyBtn'); fb.disabled=fl<=0; fb.textContent=fl>0?`Play friendly (${fl} left this week)`:'No friendlies left — play the Match Day';
     } else { qb.textContent='View final standings'; nm.innerHTML=`<div class="hk">Season ${L.season} complete</div><div class="vs"><div class="side">${crestSVG(MY_TEAM,145)}<b>${MY_TEAM}</b><span>Start the next season from the League tab</span></div></div>`; }
-    renderHomeExtra();
+        renderHomeExtra(); paneTabs(document.getElementById('playQueueArea'),[['match','Match'],['scout','Scouting'],['goals','Goals'],['maps','Maps']],'play');
     const pv=document.getElementById('poolPreview'); pv.innerHTML='';
     MAPS.forEach(m=>{const d=document.createElement('div'); d.className='maptile'+(m!=='Mirage'?' disabled':''); d.textContent=m+(m!=='Mirage'?' (soon)':''); pv.appendChild(d);});
     return;
@@ -2689,7 +2867,7 @@ function renderPlay(){ { const bp=document.getElementById('buyPanel'); if(bp)bp.
   if(match.phase==='deciding'){ da.style.display=''; document.getElementById('decidingText').textContent='IGL is thinking…'; return; }
   if(match.phase==='preview'){
     mb.style.display=''; ca.style.display=''; ev.style.display='none';
-    if(match.mode==='match'){ const pr=match.pending; document.getElementById('calledInfo').textContent=`Round ${match.round+1} · ${pr.buyMe.type} vs ${pr.buyBot.type} · Your IGL: "${pr.planMe.name}" · Their IGL: "${pr.planBot.name}"`; renderBuyPanel(pr); }
+    if(match.mode==='match'){ const pr=match.pending; document.getElementById('calledInfo').textContent=`Round ${match.round+1} · ${pr.buyMe.type} vs ${pr.buyBot.type} · Your IGL: "${pr.planMe.name}" · Their IGL: "${pr.planBot.name}"`; renderBuyPanel(pr); { const lr=document.getElementById('liveRoster'); if(lr){ lr.style.display=''; renderLiveRoster(); paneTabs(lr.parentNode,[['players','Players'],['buys','Round buys']],'rnd'); const bb=lr.parentNode.querySelector('.subbar[data-key="rnd"]'); if(bb)bb.style.display=''; } } }
     else { const bp=document.getElementById('buyPanel'); if(bp)bp.style.display='none'; const t=savedTactics.find(x=>x.id===match.tacticId); document.getElementById('calledInfo').textContent=`IGL called: "${t.name}"`; }
     while(playRouteLayer.firstChild)playRouteLayer.removeChild(playRouteLayer.firstChild);
     while(playDotLayer.firstChild)playDotLayer.removeChild(playDotLayer.firstChild);
