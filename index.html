@@ -394,6 +394,13 @@ table.sb{font-size:14.5px}table.sb td,table.sb th{padding:8px 6px}
 .subbar button{font:800 14px 'Barlow Condensed',sans-serif;letter-spacing:.03em;text-transform:uppercase;padding:9px 4px;border-radius:999px;border:1px solid #2a3b53;background:#121a26;color:#aebdd0;min-height:40px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subbar button.on{background:#f2c14e;color:#1c1403;border-color:#f2c14e;box-shadow:0 2px 10px rgba(242,193,78,.25)}
 .pane-off{display:none!important}
+#eventStrip{margin:8px 0 2px}
+#playMapBox[style*="display: none"]+#eventStrip,#playMapBox[style*="display:none"]+#eventStrip{display:none!important}
+#eventStrip .killfeed{position:static;top:auto;right:auto;max-width:100%;align-items:stretch;gap:4px;min-height:92px}
+#eventStrip .calltoasts{position:static;max-width:100%;margin-bottom:4px}
+#eventStrip .kf{width:100%;box-sizing:border-box;justify-content:flex-start;overflow:hidden;font-size:13.5px;padding:4px 10px}
+#eventStrip .kf .wimg{height:19px}#eventStrip .kf .hsimg{height:21px}
+#eventStrip .kf{width:auto;max-width:100%;align-self:flex-end} /* normal left-to-right text, but the feed sits on the right side of the page */
 </style>
 </head>
 <body>
@@ -514,7 +521,8 @@ table.sb{font-size:14.5px}table.sb td,table.sb th{padding:8px 6px}
     </div>
 
     <div class="teamcalls" id="teamCalls"></div>
-    <div class="map-box" id="playMapBox" style="display:none"><svg id="playSvg" viewBox="0 0 1374 1196" preserveAspectRatio="xMidYMid meet"></svg><div class="killfeed" id="killFeed"></div><div class="calltoasts" id="callToasts"></div></div>
+    <div class="map-box" id="playMapBox" style="display:none"><svg id="playSvg" viewBox="0 0 1374 1196" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div id="eventStrip"><div class="calltoasts" id="callToasts"></div><div class="killfeed" id="killFeed"></div></div>
     <div class="goalcard" id="liveRoster" data-pk="rnd" data-pane="players" style="display:none"></div>
     <div class="goalcard" id="buyPanel" data-pk="rnd" data-pane="buys" style="display:none"></div>
     <div class="iglov" id="iglOv" style="display:none"></div>
@@ -1480,6 +1488,7 @@ function routeToPath(from,to,cmdAtEnd,radiusAtEnd,pv){
   return pts.map((p,i)=>({x:p.x,y:p.y,time:null,cmd:i===pts.length-1?cmdAtEnd:'move',radius:i===pts.length-1?radiusAtEnd:null,target:null}));
 }
 // ============ SMART ENGINE: navmesh movement, real line-of-sight, team AI ============
+const stratsFor=side=>(side==='T'?STRATS_T:STRATS_CT).filter(x=>!x.maps||x.maps.includes(CUR_MAP));
 const STRATS_T=[
   {id:'defA',name:'Default → hit A',site:'A',speed:'default',layout:'default'},
   {id:'defB',name:'Default → hit B',site:'B',speed:'default',layout:'default'},
@@ -1493,9 +1502,13 @@ const STRATS_T=[
   {id:'slowB',name:'Slow default → late B',site:'B',speed:'slow',layout:'default'},
   {id:'midB',name:'Mid control → B',site:'B',speed:'mid',layout:'midB'},
   {id:'palaceA',name:'Palace + Ramp A',site:'A',speed:'mid',layout:'palaceA'},
+  {id:'shortA',name:'Short push A (Mid → Cat)',site:'A',speed:'mid',layout:'shortA',maps:['dust2']},
+  {id:'longA',name:'Long control → A',site:'A',speed:'default',layout:'longA',maps:['dust2']},
+  {id:'rushLong',name:'Fast Long rush A',site:'A',speed:'fast',layout:'rushLong',maps:['dust2']},
+  {id:'doorsB',name:'Mid Doors → B pinch',site:'B',speed:'mid',layout:'doorsB',maps:['dust2']},
 ];
 const STRATS_CT=[
-  {id:'std',name:'Standard 2-1-2'},{id:'stackA',name:'Stack A (3-1-1)'},{id:'stackB',name:'Stack B (1-1-3)'},{id:'aggro',name:'Aggressive mid control'},{id:'passive',name:'Passive, play the retake'},{id:'midStack',name:'Mid heavy (2-2-1)'},
+  {id:'std',name:'Standard 2-1-2'},{id:'stackA',name:'Stack A (3-1-1)'},{id:'stackB',name:'Stack B (1-1-3)'},{id:'aggro',name:'Aggressive mid control'},{id:'passive',name:'Passive, play the retake'},{id:'midStack',name:'Mid heavy (2-2-1)'},{id:'longCat',name:'Long + Short control (3-0-2)',maps:['dust2']},{id:'midDoors',name:'Mid Doors control (1-2-2)',maps:['dust2']},
 ];
 function ctLayout(id){
   const A=SITE_HOLD.A,B=SITE_HOLD.B,C=CONNECTOR;
@@ -1508,9 +1521,7 @@ function ctLayout(id){
 }
 // the IGL's decision: good IGLs read the opponent, learn what works, and stay unpredictable; bad IGLs guess and repeat themselves
 function chooseStrat(side,igl,mem,oppMem,buyType){
-  const q=Math.max(0.1,Math.min(1,igl/100)), list=side==='T'?STRATS_T:STRATS_CT;
-  const parts=list.map(st=>{
-    const P={}; const r=mem.res[st.id]||{w:0,l:0};
+  const q=Math.max(0.1,Math.min(1,igl/100)), list=stratsFor(side); const parts=list.map(st=>{ const P={}; const r=mem.res[st.id]||{w:0,l:0};
     P.learn=(r.w-r.l)*0.5*q;
     if(side==='T'){
       const ctR=oppMem.ctRecent.slice(-4), sA=ctR.filter(x=>x==='stackA').length, sB=ctR.filter(x=>x==='stackB').length;
@@ -1574,12 +1585,12 @@ function setupCT(plan,info){
   const spots=[{p:A[0],s:'A',f:0,k:0},{p:A[1],s:'A',f:0,k:1},{p:A[2],s:'A',f:0,k:2},{p:B[0],s:'B',f:0,k:0},{p:B[1],s:'B',f:0,k:1},{p:B[2],s:'B',f:0,k:2},
     {p:CONNECTOR,s:'M',f:1,k:3},{p:CT_INFO[0],s:'M',f:1,k:3},...MAPCFG.extraCT(),{p:CT_INFO[1],s:'A',f:1,k:3},{p:CT_INFO[2],s:'M',f:1.3,k:3},{p:CT_INFO[3],s:'B',f:1,k:3},{p:CT_INFO[4],s:'B',f:1.3,k:3}];
   // the call decides how many go where (so what the IGL says is what the team does); each player decides his own spot inside that split
-  const Q=({std:{A:2,M:1,B:2},stackA:{A:3,M:1,B:1},stackB:{A:1,M:1,B:3},aggro:{A:1,M:3,B:1},passive:{A:2,M:1,B:2},midStack:{A:2,M:2,B:1}}[id]||{A:2,M:1,B:2}); const quota={...Q};
+  const Q=({std:{A:2,M:1,B:2},stackA:{A:3,M:1,B:1},stackB:{A:1,M:1,B:3},aggro:{A:1,M:3,B:1},passive:{A:2,M:1,B:2},midStack:{A:2,M:2,B:1},longCat:{A:3,M:0,B:2},midDoors:{A:1,M:2,B:2}}[id]||{A:2,M:1,B:2}); const quota={...Q};
   const pri={Anchor:0,Support:1,AWP:2,Entry:3,Lurker:4}, order=[0,1,2,3,4].sort((a,b)=>(pri[info.roles[a]]??5)-(pri[info.roles[b]]??5)), used=new Set(), out=[];
   order.forEach(i=>{ const role=info.roles[i]||'Support', ag=aggFor(info.names[i]||('p'+i),role)+(id==='aggro'?0.25:id==='passive'?-0.3:0)+((plan&&plan.aggr)||0);
     let pool=spots.filter(x=>!used.has(x)&&quota[x.s]>0); if(!pool.length)pool=spots.filter(x=>!used.has(x));
     const sp=wpick(pool,x=>{ let w=1; w*=x.f?Math.pow(Math.max(0.5,ag),2):Math.max(0.35,2.1-ag);
-      if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2; return w; });
+      if(role==='Anchor'&&!x.f)w*=x.k===0?3:2; if(role==='AWP'&&(x.f||x.k===1))w*=2; if(role==='Support'&&(x.k===2||x.s==='M'))w*=1.5; if((role==='Entry'||role==='Lurker')&&x.f)w*=2.2; if(id==='longCat'&&x.s==='A'&&x.f)w*=3; if(id==='midDoors'&&x.s==='M'&&x.f)w*=2.5; return w; });
     used.add(sp); quota[sp.s]--; out[i]={p:sp.p,r:170+ag*25,s:sp.s,f:sp.f}; });
   return out;
 }
@@ -1619,11 +1630,11 @@ MAP_DEFS.mirage={id:'mirage',name:'Mirage',img:MAP_IMG.mirage,nav:NAV_B64.mirage
   tZones:l=>({L:l==='A'?['A Ramp','Palace']:['Apps'],M:[l==='B'?'Short':'Mid'],O:l==='A'?['Apps']:['A Ramp','Palace']}),
   LL:{splitA:['Palace','Palace','A Ramp','Mid','Mid'],splitB:['Apps','Apps','Apps','Short','Short'],midB:['Mid','Mid','Mid','Apps','Apps'],palaceA:['Palace','Palace','Palace','A Ramp','A Ramp']}, awpLane:'Mid', names:{},
   extraCT:()=>[{p:snapPt({x:640,y:520}),s:'M',f:1.2,k:3,n:'Short'}]};
-const D2={"TSPAWN":{"x":538,"y":1056},"CTSPAWN":{"x":812,"y":242},"T_SPREAD":[{"x":486,"y":1036},{"x":534,"y":1032},{"x":581,"y":1036},{"x":503,"y":1075},{"x":564,"y":1075}],"CT_SPREAD":[{"x":776,"y":207},{"x":814,"y":199},{"x":840,"y":225},{"x":776,"y":263},{"x":823,"y":272}],"PLANTS":{"A":{"x":1024,"y":199},"B":{"x":331,"y":147}},"SITE_HOLD":{"A":[{"x":1024,"y":199},{"x":961,"y":229},{"x":1095,"y":207},{"x":1039,"y":272}],"B":[{"x":331,"y":147},{"x":301,"y":186},{"x":365,"y":181},{"x":326,"y":229}]},"CONNECTOR":{"x":737,"y":471},"MID":{"x":640,"y":566},"STAGE":{"A":[{"x":1104,"y":695},{"x":806,"y":466}],"MID":{"x":640,"y":648},"B":[{"x":301,"y":712},{"x":318,"y":816}]},"T_CTRL_RAW":[{"x":640,"y":648},{"x":920,"y":734},{"x":326,"y":745},{"x":640,"y":522},{"x":737,"y":484},{"x":296,"y":566}],"CT_INFO_RAW":[{"x":629,"y":522},{"x":834,"y":380},{"x":611,"y":371},{"x":512,"y":255},{"x":348,"y":328}],"CALLOUTS":{"T Spawn":{"x":538,"y":1056},"Long A":{"x":1086,"y":712,"w":{"x":927,"y":760}},"Cat":{"x":806,"y":466,"w":{"x":655,"y":648}},"Mid":{"x":640,"y":566,"w":{"x":640,"y":717}},"B Tunnels":{"x":294,"y":572,"w":{"x":316,"y":760}},"B Doors":{"x":512,"y":255,"w":{"x":598,"y":367}},"A Site":{"x":1024,"y":199,"l":{"x":1024,"y":289}},"B Site":{"x":331,"y":147,"l":{"x":331,"y":255}},"CT Spawn":{"x":812,"y":242}},"LINEUPS":{"A":{"smoke":[{"n":"A Cross","must":1,"x":996,"y":276},{"n":"CT smoke (Short)","must":1,"x":819,"y":281},{"n":"Long corner","x":1093,"y":363}],"flash":[{"n":"Long pop","x":1086,"y":384},{"n":"site pop","x":1017,"y":229},{"n":"Short pop","x":845,"y":363}],"molly":[{"n":"Goose","x":1099,"y":242},{"n":"Pit","x":1130,"y":449}],"he":[{"n":"Site","x":1039,"y":216}]},"B":{"smoke":[{"n":"B Doors","must":1,"x":499,"y":263},{"n":"Window","must":1,"x":391,"y":268},{"n":"CT","x":439,"y":212}],"flash":[{"n":"Tunnel pop","x":331,"y":242},{"n":"Window pop","x":387,"y":220}],"molly":[{"n":"Back plat","x":231,"y":134},{"n":"Default","x":339,"y":155}],"he":[{"n":"Site","x":331,"y":181}]}},"T_OPEN":[{"n":"Xbox smoke","kind":"smoke","p":0.75,"site":"A","x":642,"y":458}],"CT_UTIL":{"opens":[{"n":"Mid Doors smoke","kind":"smoke","p":0.45,"x":640,"y":479}],"delays":[{"n":"Long Doors molly","kind":"molly","zr":170,"zx":927,"zy":760,"x":1086,"y":674},{"n":"HE down Long","kind":"he","zr":180,"zx":1086,"zy":712,"x":1104,"y":566},{"n":"Tunnels smoke","kind":"smoke","zr":170,"zx":305,"zy":648,"x":296,"y":583},{"n":"Tunnels molly","kind":"molly","zr":150,"zx":316,"zy":760,"x":314,"y":669},{"n":"Short flash","kind":"flash","zr":150,"zx":806,"zy":466,"x":819,"y":462},{"n":"Mid smoke","kind":"smoke","zr":140,"zx":640,"zy":566,"x":640,"y":501}]},"EXTRA_CT":[{"p":{"x":1086,"y":358},"s":"A","f":1.3,"k":3,"n":"Long corner"}]};
+const D2={"TSPAWN":{"x":538,"y":1056},"CTSPAWN":{"x":812,"y":242},"T_SPREAD":[{"x":486,"y":1036},{"x":534,"y":1032},{"x":581,"y":1036},{"x":503,"y":1075},{"x":564,"y":1075}],"CT_SPREAD":[{"x":776,"y":207},{"x":814,"y":199},{"x":840,"y":225},{"x":776,"y":263},{"x":823,"y":272}],"PLANTS":{"A":{"x":1024,"y":199},"B":{"x":331,"y":147}},"SITE_HOLD":{"A":[{"x":1024,"y":199},{"x":961,"y":229},{"x":1095,"y":207},{"x":1039,"y":272}],"B":[{"x":331,"y":147},{"x":301,"y":186},{"x":365,"y":181},{"x":326,"y":229}]},"CONNECTOR":{"x":737,"y":471},"MID":{"x":640,"y":566},"STAGE":{"A":[{"x":1104,"y":695},{"x":806,"y":466}],"MID":{"x":640,"y":648},"B":[{"x":301,"y":712},{"x":318,"y":816}]},"T_CTRL_RAW":[{"x":640,"y":648},{"x":920,"y":734},{"x":326,"y":745},{"x":640,"y":522},{"x":737,"y":484},{"x":296,"y":566}],"CT_INFO_RAW":[{"x":629,"y":522},{"x":834,"y":380},{"x":611,"y":371},{"x":512,"y":255},{"x":348,"y":328}],"CALLOUTS":{"T Spawn":{"x":538,"y":1056},"Long A":{"x":1086,"y":712,"w":{"x":927,"y":760}},"Cat":{"x":806,"y":466,"w":{"x":655,"y":648}},"Mid":{"x":640,"y":566,"w":{"x":640,"y":717}},"B Tunnels":{"x":294,"y":572,"w":{"x":316,"y":760}},"B Doors":{"x":512,"y":255,"w":{"x":598,"y":367}},"A Site":{"x":1024,"y":199,"l":{"x":1024,"y":289}},"B Site":{"x":331,"y":147,"l":{"x":331,"y":255}},"CT Spawn":{"x":812,"y":242}},"LINEUPS":{"A":{"smoke":[{"n":"A Cross","must":1,"x":996,"y":276},{"n":"CT smoke (Short)","must":1,"x":819,"y":281},{"n":"Long corner","x":1093,"y":363}],"flash":[{"n":"Long pop","x":1086,"y":384},{"n":"site pop","x":1017,"y":229},{"n":"Short pop","x":845,"y":363}],"molly":[{"n":"Goose","x":1099,"y":242},{"n":"Pit","x":1130,"y":449}],"he":[{"n":"Site","x":1039,"y":216}]},"B":{"smoke":[{"n":"B Doors","must":1,"x":499,"y":263},{"n":"Window","must":1,"x":391,"y":268},{"n":"CT","x":439,"y":212}],"flash":[{"n":"Tunnel pop","x":331,"y":242},{"n":"Window pop","x":387,"y":220}],"molly":[{"n":"Back plat","x":231,"y":134},{"n":"Default","x":339,"y":155}],"he":[{"n":"Site","x":331,"y":181}]}},"T_OPEN":[{"n":"Xbox smoke","kind":"smoke","p":0.75,"site":"A","x":642,"y":458}],"CT_UTIL":{"opens":[{"n":"Mid Doors smoke","kind":"smoke","p":0.85,"x":640,"y":479}],"delays":[{"n":"Long Doors molly","kind":"molly","zr":170,"zx":927,"zy":760,"x":1086,"y":674},{"n":"HE down Long","kind":"he","zr":180,"zx":1086,"zy":712,"x":1104,"y":566},{"n":"Tunnels smoke","kind":"smoke","zr":170,"zx":305,"zy":648,"x":296,"y":583},{"n":"Tunnels molly","kind":"molly","zr":150,"zx":316,"zy":760,"x":314,"y":669},{"n":"Short flash","kind":"flash","zr":150,"zx":806,"zy":466,"x":819,"y":462},{"n":"Mid smoke","kind":"smoke","zr":140,"zx":640,"zy":566,"x":640,"y":501}]},"EXTRA_CT":[{"p":{"x":1086,"y":358},"s":"A","f":1.3,"k":3,"n":"Long corner"}]};
 MAP_DEFS.dust2={id:'dust2',name:'Dust 2',img:DUST2_IMG,nav:DUST2_NAV,TSPAWN:D2.TSPAWN,CTSPAWN:D2.CTSPAWN,CONNECTOR:D2.CONNECTOR,MID:D2.MID,PLANTS:D2.PLANTS,SITE_HOLD:D2.SITE_HOLD,T_SPREAD:D2.T_SPREAD,CT_SPREAD:D2.CT_SPREAD,STAGE:D2.STAGE,CALLOUTS:D2.CALLOUTS,LINEUPS:D2.LINEUPS,
   T_CTRL_RAW:D2.T_CTRL_RAW, CT_INFO_RAW:D2.CT_INFO_RAW, tOpen:D2.T_OPEN, ctUtil:D2.CT_UTIL,
   tZones:l=>({L:l==='A'?['Long A','Cat']:['B Tunnels'],M:[l==='B'?'B Doors':'Mid'],O:l==='A'?['B Tunnels']:['Long A','Cat']}),
-  LL:{splitA:['Long A','Long A','Cat','Cat','Mid'],splitB:['B Tunnels','B Tunnels','B Tunnels','B Doors','B Doors'],midB:['Mid','Mid','Mid','B Tunnels','B Tunnels'],palaceA:['Long A','Long A','Long A','Cat','Cat']}, awpLane:'Mid',
+  LL:{shortA:['Cat','Cat','Cat','Mid','Long A'],longA:['Long A','Long A','Long A','Mid','B Tunnels'],rushLong:['Long A','Long A','Long A','Long A','Long A'],doorsB:['Mid','B Doors','B Doors','B Tunnels','B Tunnels'],splitA:['Long A','Long A','Cat','Cat','Mid'],splitB:['B Tunnels','B Tunnels','B Tunnels','B Doors','B Doors'],midB:['Mid','Mid','Mid','B Tunnels','B Tunnels'],palaceA:['Long A','Long A','Long A','Cat','Cat']}, awpLane:'Mid',
   names:{splitA:'Split A (Long + Cat)',splitB:'Split B (Tunnels + Doors)',midB:'Mid control → B',palaceA:'Long + Cat A'},
   extraCT:()=>D2.EXTRA_CT.map(e=>({...e,p:snapPt(e.p||{x:e.x,y:e.y})}))};
 let CUR_MAP='mirage', MAPCFG=MAP_DEFS.mirage;
@@ -1682,7 +1693,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   all.forEach(u=>{ u.inv0={...inv(u)}; });
   const fires=[]; let pmDone=false;
   const inFire=(u,t)=>fires.some(f=>t>=f.t&&t<f.t+f.dur&&dist(u.pos,f)<f.r);
-  function utilHit(o,e,dmg,t,kind){ if(!e.alive)return; if(e.armor)dmg*=0.55; dmg*=0.8+0.4*(o.stats.util||60)/100; dmg=Math.round(dmg); const real=Math.min(e.hp,dmg); e.hp-=dmg; dmgDealt[o.key]=(dmgDealt[o.key]||0)+real;
+  function utilHit(o,e,dmg,t,kind){ if(!e.alive)return; if(e.armor)dmg*=(kind==='molly'?0.85:0.55); dmg*=0.8+0.4*(o.stats.util||60)/100; dmg=Math.round(dmg); const real=Math.min(e.hp,dmg); e.hp-=dmg; dmgDealt[o.key]=(dmgDealt[o.key]||0)+real;
     const db=dmgBy[e.key]=dmgBy[e.key]||{}; db[o.key]=(db[o.key]||0)+real; (hpLog[e.key]=hpLog[e.key]||[]).push({t,hp:Math.max(0,e.hp)});
     if(e.hp<=0){ e.alive=false; e.deathT=t; e.queue=[]; deaths.push({t,side:e.side,pos:{...e.pos}});
       killLog.push({t,k:o.key,v:e.key,a:null,w:kind==='he'?'HE Grenade':'Molotov',hs:false,blind:false,kx:o.pos.x,ky:o.pos.y,vx:e.pos.x,vy:e.pos.y,hpLeft:Math.max(0,o.hp)});
@@ -1690,8 +1701,12 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   function throwMolly(u,pt,t){ pt=snapPt(pt); util.push({t,type:'molly',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y}); fires.push({t:t+0.8,x:pt.x,y:pt.y,r:75,dur:7,o:u}); }
   function throwHE(u,pt,t){ pt=snapPt(pt); util.push({t,type:'he',x:pt.x,y:pt.y,fx:u.pos.x,fy:u.pos.y});
     foesOf(u).forEach(e=>{ const d=dist(e.pos,pt); if(d<170&&losClear(e.pos,pt))utilHit(u,e,98*(1-d/170),t+0.8,'he'); }); }
-  function fireTick(t){ fires.forEach(f=>{ if(t<f.t||t>=f.t+f.dur)return; foesOf(f.o).forEach(e=>{ if(dist(e.pos,f)>=f.r)return; utilHit(f.o,e,13,t,'molly');
-      if(e.alive){ const dx=e.pos.x-f.x,dy=e.pos.y-f.y,L=Math.hypot(dx,dy)||1; pathQ(e,{x:e.pos.x+dx/L*110,y:e.pos.y+dy/L*110}); e.broke=true; e.auto=true; e.wait=0; setAct(e,'out of fire',t); } }); }); }
+  function fireTick(t){ fires.forEach(f=>{ if(t<f.t||t>=f.t+f.dur)return; foesOf(f.o).forEach(e=>{ if(!e.alive||dist(e.pos,f)>=f.r)return;
+      utilHit(f.o,e,MOLLY_DPS*STEP,t,'molly');                              // about 32 damage per second while standing in it
+      if(!e.alive)return;
+      if(e.fireReactAt==null||t-e.fireReactAt>2.5){ e.fireReactAt=t; e.fireReact=t+0.15+(1-Math.min(1,e.stats.pos/100))*0.5; } // better players react faster
+      if(t>=e.fireReact&&(!e.fireOutUntil||t>=e.fireOutUntil)){ const cands=[0,1,2,3,4,5,6,7].map(k=>{ const an=k*Math.PI/4; return snapPt({x:f.x+Math.cos(an)*(f.r+60),y:f.y+Math.sin(an)*(f.r+60)}); }).filter(p=>!inFire({pos:p},t)).sort((p,q)=>dist(p,e.pos)-dist(q,e.pos));
+        const goal=cands[0]||{x:e.pos.x+(e.pos.x-f.x),y:e.pos.y+(e.pos.y-f.y)}; pathQ(e,goal); e.broke=true; e.auto=true; e.wait=0; e.fireOutUntil=t+1.2; setAct(e,'runs out of the fire',t); } }); }); }
   const utilQ=[];
   // Timing depends on the thrower's util stat: a high-util player waits for the right moment (teammate about to enter), a low-util player throws early, late, or wastes it.
   const sched=(u,kind,spot,after,maxT,rng,jit,nowFlag)=>{ if(!u||inv(u)[kind]<=0)return false; inv(u)[kind]--; const ts=u.stats.util/100, now=spot.n==='bomb'||!!nowFlag;
@@ -2068,7 +2083,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
   }
 
   for(let t=0;t<=MAXT;t+=STEP){
-    endT=t;
+    endT=t; fireTick(t);
     for(let i=reengage.length-1;i>=0;i--) if(t>=reengage[i].t){ engaged.delete(reengage[i].key); reengage.splice(i,1); }
     for(const u of all){
       if(!u.alive)continue;
@@ -2077,8 +2092,9 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         if(!u.auto){u.auto=true;u.pos=posAt(u.sp,u.spEnd);}
         if(u.queue.length&&t>=u.wait){
           const tg=u.queue[0],d=dist(u.pos,tg),mv=SPEED*STEP*((u.walk||u.jiggling)?0.5:1);
-          if(d<=mv){u.pos={x:tg.x,y:tg.y};u.queue.shift();}
-          else u.pos={x:u.pos.x+(tg.x-u.pos.x)/d*mv,y:u.pos.y+(tg.y-u.pos.y)/d*mv};
+          const nxp=d<=mv?{x:tg.x,y:tg.y}:{x:u.pos.x+(tg.x-u.pos.x)/d*mv,y:u.pos.y+(tg.y-u.pos.y)/d*mv};
+ if(fires.length&&!inFire(u,t)&&inFire({pos:nxp},t)){ u.wait=t+0.3; setAct(u,'waits for the fire to die',t); }   // nobody walks into a molotov
+ else if(d<=mv){u.pos=nxp;u.queue.shift();} else u.pos=nxp;
         }
       }
       { const cx=(u.pos.x/NAV_G)|0, cy=(u.pos.y/NAV_G)|0; if(cx<0||cy<0||cx>=NAV_W||cy>=NAV_H||!navPath[cy*NAV_W+cx])u.pos=snapPt(u.pos); }
@@ -2104,7 +2120,7 @@ function simulateRound(myP0,botP0,myStats,botStats,attackerIsMe,iglMe,iglBot,pla
         } else if(!(lastSight[key]>t-2)){lastSight[key]=t;addSight('me',b.pos,t,1,m.key);addSight('bot',m.pos,t,1,b.key);}
       }
     }
-    if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);fireTick(t);all.forEach(u=>{ const M=WSTAT[u.stats.weapon]; if(u.alive&&M&&u.ammo!=null&&u.ammo<M.mag&&t-(u.lastShot||-9)>3.5)u.ammo=M.mag; }); // reload when nobody is shooting at him
+    if(Math.floor(t)!==Math.floor(t-STEP)){runUtil(t);all.forEach(u=>{ const M=WSTAT[u.stats.weapon]; if(u.alive&&M&&u.ammo!=null&&u.ammo<M.mag&&t-(u.lastShot||-9)>3.5)u.ammo=M.mag; }); // reload when nobody is shooting at him
     hearSounds(t);brain('me',t);brain('bot',t);for(const u of all)if(u.alive)think(u,t);
       for(const u of all){ if(!u.alive)continue; let best=null,bd=750;
         for(const e of all){ if(!e.alive||e.side===u.side)continue; const d=dist(u.pos,e.pos); if(d<bd&&seeClear(u.pos,e.pos)){bd=d;best=e;} }
@@ -2246,6 +2262,7 @@ document.getElementById('iglDecideBtn').onclick=()=>{
 
 // ================== CAREER: full matches, economy, stats, league ==================
 const STAT_SCALE=0.6; // ratings are pulled toward 60 inside a round: a 95 is not 3x a 50 on the server
+let MOLLY_DPS=22; // molotov damage per second to someone standing in the fire
 const STAT_K=0.7; // how much of a stat difference turns into fighting strength (lower = flatter, more upsets)
 const WSTAT={
  'AK-47':{mag:30,rel:2.5,dmg:36,pen:0.775,cyc:0.1,tap:0.32,range:3200,acc:1,run:0.35,auto:1},
@@ -2381,7 +2398,7 @@ function prepareRound(){
   // both IGLs make their call for this round
   let planMe=chooseStrat(side,myIGL,m.mem.me,m.mem.bot,buyMe.type); const planBot=chooseStrat(oppSide,botIGL,m.mem.bot,m.mem.me,buyBot.type);
   { const sd=m.stand||roster.stand||{tempo:'normal',aggr:'normal',buy:'auto'}; // the manager's call and standing instructions override the IGL
-    if(m.call){ const base=(side==='T'?STRATS_T:STRATS_CT).find(x=>x.id===m.call); if(base)planMe={...base,why:'Your call'}; }
+    if(m.call){ const base=stratsFor(side).find(x=>x.id===m.call); if(base)planMe={...base,why:'Your call'}; }
     planMe={...planMe,aggr:{passive:-0.3,normal:0,aggressive:0.3}[sd.aggr||'normal']};
     if(side==='T'&&sd.tempo&&sd.tempo!=='normal')planMe.speed=sd.tempo==='fast'?'fast':'slow';
     if(sd.buy==='save'&&buyMe.type!=='Pistol')buyMe.type='Eco'; if(sd.buy==='force'&&buyMe.type==='Eco')buyMe.type='Force buy'; m.call=null; }
@@ -2628,8 +2645,7 @@ function scoutHTML(t){ const s=oppStyle(t.name), pl=t.players.slice().sort((a,b)
   return `<div class="scout"><div class="sectitle" style="margin:10px 0 4px">Scouting report${lv?'':' (basic)'}</div>${shown.map(x=>`<div class="srow">${x}</div>`).join('')}${hidden>0?`<div class="srow" style="opacity:.6">🔒 ${hidden} more insight${hidden>1?'s':''} — hire a better analyst in Market → Club office</div>`:''}
     ${lv>=1?`<div class="srow">⭐ Star: <b>${star.name}</b> (${star.role}, ${ovr(star)})${awp?` · 🔭 AWPer: <b>${awp.name}</b> (${ovr(awp)})`:''} · IGL: <b>${iglP.name}</b> (${iglP.igl})</div>`:''}${lv>=3?`<div class="srow tip">💡 ${tip}</div>`:''}</div>`; }
 const CALL_NAMES={default:'Default',allA:'Rush A',allB:'Rush B',splitA:'Split A',splitB:'Split B',fakeAB:'Fake A → B',slowA:'Slow → late A',slowB:'Slow → late B',midB:'Mid → B',palaceA:'Palace A',std:'Standard 2-1-2',stackA:'Stack A',stackB:'Stack B',aggro:'Aggressive mid',passive:'Passive retake',midStack:'Mid heavy'};
-function callCardHTML(side){ const m=match, st=m.stand||(m.stand=roster.stand||{tempo:'normal',aggr:'normal',buy:'auto'}), list=side==='T'?STRATS_T:STRATS_CT;
-  const chip=(k,v,label,on)=>`<button class="chip2 ${on?'on':''}" data-${k}="${v}">${label}</button>`;
+function callCardHTML(side){ const m=match, st=m.stand||(m.stand=roster.stand||{tempo:'normal',aggr:'normal',buy:'auto'}), list=stratsFor(side); const chip=(k,v,label,on)=>`<button class="chip2 ${on?'on':''}" data-${k}="${v}">${label}</button>`;
   return `<div class="goalcard" id="callCard"><div class="sectitle" style="margin:0 0 6px">Call the round <span class="note" style="margin:0">(${side})</span></div>
     <div class="chips">${chip('call','auto','🤖 Auto (IGL)',!m.call||m.call==='auto')}${list.map(x=>chip('call',x.id,stratName(x),m.call===x.id)).join('')}</div>
     <div class="note" style="margin:8px 0 2px;text-align:left">Standing instructions</div>
@@ -2729,7 +2745,7 @@ function renderLiveRoster(){ const el=document.getElementById('liveRoster'); if(
   const h=`<div class="lr">${col('me',MY_TEAM,mine)}${col('bot',(match&&match.opp&&match.opp.name)||'Enemy',opp)}</div>`; if(el.dataset.h!==h){ el.dataset.h=h; el.innerHTML=h; } }
 function renderKillFeed(){ renderLiveRoster();
   const kf=document.getElementById('killFeed'); if(!kf)return;
-  const ks=(simResult.kills||[]).filter(k=>k.t<=playTime&&playTime-k.t<6).slice(-5);
+  const ks=(simResult.kills||[]).filter(k=>k.t<=playTime&&playTime-k.t<7).slice(-3);
   const kfh=ks.map(k=>`<div class="kf ${k.k.startsWith('me')?'mine':''}"><span class="${sideCls(k.k)}">${nameFor(k.k)}</span>${k.a?` + <span class="${sideCls(k.a)}">${nameFor(k.a)}</span>`:''}${wIcon(k.w)}${k.hs?HS_ICON:''}${k.coll?COLL_ICON:''}${k.blind?BLIND_ICON:''}<span class="${sideCls(k.v)}">${nameFor(k.v)}</span></div>`).join('');
   if(kf.dataset.h!==kfh){ kf.dataset.h=kfh; kf.innerHTML=kfh; }
 }
